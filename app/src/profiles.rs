@@ -363,6 +363,7 @@ pub fn profiles_assign(
     profile.vehicle = Some(vehicle);
     profile.updated_at = now();
     store.write(&profile).map_err(|e| e.to_string())?;
+    store.mark_changed();
     Ok(profile)
 }
 
