@@ -100,7 +100,7 @@ export function Customize({ cw, settings, custom, refreshCustom, status }: PageP
 
   return (
     <Panel place="page" title={w.title} sub={w.sub}>
-      <TruckProfiles status={status} />
+      <TruckProfiles status={status} wallpapers={wallpapers} iconSets={(custom?.iconSets ?? []).map((set) => set.name)} />
       <Group title={w.wallpapers} place={4}>
         <div className="cz-wallpapers">
           {wallpapers.map((wallpaper) => (
@@ -198,13 +198,19 @@ export function Customize({ cw, settings, custom, refreshCustom, status }: PageP
 
 
 /** Local per-truck profiles. A profile is only marked as matching; changing it never happens silently. */
-function TruckProfiles({ status }: { status: PageProps['status'] }) {
+function TruckProfiles({ status, wallpapers, iconSets }: {
+  status: PageProps['status']
+  wallpapers: Wallpaper[]
+  iconSets: string[]
+}) {
   const words = useWords()
   const spanish = words.locale.toLowerCase().startsWith('es')
   const [profiles, setProfiles] = useState<TruckProfile[]>([])
   const [name, setName] = useState('')
   const [editing, setEditing] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
+  const [configuring, setConfiguring] = useState<string | null>(null)
+  const [appearanceDraft, setAppearanceDraft] = useState<TruckProfile['appearance'] | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const truck = status?.game === 'ets2' && status.gameConnected && status.truck?.identityConfident
@@ -233,6 +239,14 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
     save: 'Guardar',
     cancel: 'Cancelar',
     confirm: '¿Eliminar este perfil? Esta acción no se puede deshacer.',
+    configure: 'Personalizar',
+    appearance: 'Apariencia',
+    wallpaper: 'Fondo de pantalla',
+    iconSet: 'Conjunto de iconos',
+    iconStyle: 'Estilo de iconos',
+    inheritWallpaper: 'Usar fondo general',
+    defaultIcons: 'Iconos predeterminados',
+    savedAppearance: 'Configuración del camión guardada.',
   } : {
     title: 'Trucks and profiles',
     sub: 'Save an independent configuration for each truck.',
@@ -255,6 +269,14 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
     save: 'Save',
     cancel: 'Cancel',
     confirm: 'Delete this profile? This cannot be undone.',
+    configure: 'Customize',
+    appearance: 'Appearance',
+    wallpaper: 'Wallpaper',
+    iconSet: 'Icon set',
+    iconStyle: 'Icon style',
+    inheritWallpaper: 'Use global wallpaper',
+    defaultIcons: 'Default icons',
+    savedAppearance: 'Truck appearance saved.',
   }
 
   const refresh = async () => {
@@ -328,6 +350,23 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
     }
   }
 
+  const saveAppearance = async (profile: TruckProfile) => {
+    if (!appearanceDraft || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await profilesUpdate({ ...profile, appearance: appearanceDraft })
+      setConfiguring(null)
+      setAppearanceDraft(null)
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+
   return (
     <Group title={labels.title} place={3}>
       <div className="cz-profiles">
@@ -386,11 +425,47 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
                       <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => { setEditing(profile.id); setEditName(profile.name) }}>{labels.edit}</button>
                     )}
                     {profile.id !== 'default' && (
+                      <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => {
+                        setConfiguring(configuring === profile.id ? null : profile.id)
+                        setAppearanceDraft({ ...profile.appearance })
+                      }}>{labels.configure}</button>
+                    )}
+                    {profile.id !== 'default' && (
                       <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => void remove(profile)}>{labels.remove}</button>
                     )}
                   </>
                 )}
               </div>
+              {configuring === profile.id && appearanceDraft && profile.id !== 'default' && (
+                <div className="cz-profile-config">
+                  <label>{labels.appearance}
+                    <select value={appearanceDraft.mode ?? 'auto'} onChange={(event) => setAppearanceDraft({ ...appearanceDraft, mode: event.target.value as 'auto' | 'dark' | 'light' })}>
+                      <option value="auto">Auto</option><option value="dark">Oscuro / Dark</option><option value="light">Claro / Light</option>
+                    </select>
+                  </label>
+                  <label>{labels.wallpaper}
+                    <select value={appearanceDraft.wallpaper ?? ''} onChange={(event) => setAppearanceDraft({ ...appearanceDraft, wallpaper: event.target.value || null })}>
+                      <option value="">{labels.inheritWallpaper}</option>
+                      {wallpapers.map((wallpaper) => <option key={wallpaper.id} value={wallpaper.id}>{wallpaper.name}</option>)}
+                    </select>
+                  </label>
+                  <label>{labels.iconSet}
+                    <select value={appearanceDraft.iconSet ?? ''} onChange={(event) => setAppearanceDraft({ ...appearanceDraft, iconSet: event.target.value || null })}>
+                      <option value="">{labels.defaultIcons}</option>
+                      {iconSets.map((set) => <option key={set} value={set}>{set}</option>)}
+                    </select>
+                  </label>
+                  <label>{labels.iconStyle}
+                    <select value={appearanceDraft.iconStyle ?? 'auto'} onChange={(event) => setAppearanceDraft({ ...appearanceDraft, iconStyle: event.target.value as 'auto' | 'dark' | 'light' })}>
+                      <option value="auto">Auto</option><option value="dark">Oscuro / Dark</option><option value="light">Claro / Light</option>
+                    </select>
+                  </label>
+                  <div className="cz-profile-config-actions">
+                    <Button small busy={busy} onClick={() => void saveAppearance(profile)}>{labels.save}</Button>
+                    <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => { setConfiguring(null); setAppearanceDraft(null) }}>{labels.cancel}</button>
+                  </div>
+                </div>
+              )}
             </div>
           )
         })}
