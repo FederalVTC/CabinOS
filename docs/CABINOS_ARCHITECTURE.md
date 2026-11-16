@@ -11,7 +11,7 @@
 
 ## Perfiles de camión
 
-Cada perfil tendrá un identificador UUID estable y una identidad de vehículo. La asociación automática debe priorizar un identificador único proporcionado por ETS2; en su defecto, marca/modelo/variante y, finalmente, una asociación manual. No se debe cambiar de perfil cuando la identidad detectada sea ambigua. Los camiones desconocidos usarán un perfil predeterminado.
+Cada perfil tendrá un identificador UUID estable y una identidad de vehículo. La activación automática solo se permite cuando existe una huella local inequívoca del camión y coincide exactamente con un único perfil. No se debe activar automáticamente por marca o modelo, ni cambiar de perfil cuando falte la huella o la identidad sea ambigua. En esos casos se conservan los valores globales; la asociación manual queda disponible desde la administración de perfiles.
 
 Datos previstos por perfil:
 
@@ -53,7 +53,7 @@ El actualizador heredado de WestPlay no puede distribuir versiones de CabinOS. S
 
 ## Identidad del camión y asociación de perfiles
 
-El host recibe la identidad del camión desde el SDK de SCS. CabinOS expone a la interfaz el identificador de modelo, marca y nombre; nunca envía la matrícula en claro. Cuando existe una matrícula, el host calcula una huella local determinista a partir del modelo y la matrícula. La asociación prioriza esa huella; si no existe, solo puede usar el identificador del modelo cuando hay una única coincidencia. Si hay varias coincidencias, no se cambia automáticamente de perfil.
+El host recibe la identidad del camión desde el SDK de SCS. CabinOS expone a la interfaz el identificador de modelo, marca y nombre; nunca envía la matrícula en claro. Cuando existe una matrícula, el host calcula una huella local determinista a partir del modelo y la matrícula. La activación automática exige esa huella y una única coincidencia exacta. La marca y el modelo se muestran como información descriptiva, pero no se usan como sustitutos de la huella para activar perfiles. Si falta la huella o hay más de una coincidencia, no se activa un perfil personalizado.
 
 El almacén de perfiles crea un perfil predeterminado que no se puede borrar. Los perfiles personalizados se guardan como archivos JSON independientes. Cada perfil admite apariencia, aplicaciones, accesos directos y distribución; las escrituras pasan por un archivo temporal. No se permite asignar la misma huella de camión a dos perfiles.
 
@@ -61,4 +61,4 @@ La pantalla de administración está integrada en Configuración. La activación
 
 ## Estado
 
-Estado verificado en código: persistencia y administración de perfiles, selección automática segura por huella, notificación al host y aplicación temporal de apariencia están implementadas; la UI y sus pruebas pasan. La validación integral de Rust y el empaquetado Windows siguen sujetos a CI. Aplicaciones, accesos directos y diseños por perfil aún no están integrados en ejecución. Este documento no declara terminada ninguna función que no haya superado sus pruebas reproducibles.
+Estado verificado en código: persistencia y administración de perfiles, selección automática segura por huella, notificación al host y aplicación temporal de apariencia están implementadas. Las pruebas de UI pasan. La validación integral de Rust y el empaquetado Windows están siendo comprobados en CI. Aplicaciones, accesos directos y diseños por perfil aún no están integrados en ejecución. Este documento no declara terminada ninguna función que no haya superado sus pruebas reproducibles.
