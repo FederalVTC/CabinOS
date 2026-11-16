@@ -5,6 +5,7 @@
 
 mod customize;
 mod maps;
+mod profiles;
 mod setup;
 mod update;
 
@@ -244,7 +245,12 @@ fn main() {
             setup::finish_setup,
             setup::uninstall_from_game,
             setup::remove_data,
-            setup::leave_pc
+            setup::leave_pc,
+            profiles::profiles_list,
+            profiles::profiles_create,
+            profiles::profiles_update,
+            profiles::profiles_delete,
+            profiles::profiles_assign
         ])
         .setup(move |app| {
             westplay_host::startup::mark("app: window set up");
@@ -259,6 +265,8 @@ fn main() {
                 });
             }
             let config_dir = app.path().app_config_dir()?;
+            let profiles = profiles::Profiles::load(&app.path().app_local_data_dir()?.join("profiles"))?;
+            app.manage(profiles);
             let file = SettingsFile::in_dir(&config_dir);
             let shared = Arc::new(SharedSettings::new(file.load()));
             let setup = SetupStore::load(&config_dir, app.handle());
