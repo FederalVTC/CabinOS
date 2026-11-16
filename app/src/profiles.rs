@@ -325,6 +325,7 @@ pub fn profiles_update(
     profile.created_at = existing.created_at;
     profile.updated_at = now();
     store.write(&profile).map_err(|e| e.to_string())?;
+    store.mark_changed();
     Ok(profile)
 }
 
