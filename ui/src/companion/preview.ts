@@ -3,6 +3,7 @@ import type { Customizations } from '../shared/customize'
 import type { Added } from './customize'
 import type { Offer } from './update'
 import type { HostStatus, MapStatus } from './useHostStatus'
+import type { TruckProfile, VehicleIdentity } from './profiles'
 import type { Settings } from './useSettings'
 
 /**
@@ -27,6 +28,21 @@ import type { Settings } from './useSettings'
  */
 const query = new URLSearchParams(location.search)
 const gameState = query.get('game') ?? 'live'
+
+let demoProfiles: TruckProfile[] = [
+  {
+    schemaVersion: 1,
+    id: 'default',
+    name: 'Predeterminado',
+    vehicle: null,
+    appearance: { theme: 'electric', wallpaper: null, accentColor: '#35D9FF' },
+    applications: [],
+    shortcuts: [],
+    layout: {},
+    createdAt: 0,
+    updatedAt: 0,
+  },
+]
 
 const GAME: GameInfo = {
   kind: 'ets2',
@@ -330,6 +346,39 @@ function previewKeyName(key: number): string | null {
 
 export function answer(command: string, args?: Record<string, unknown>): Promise<unknown> {
   switch (command) {
+    case 'profiles_list':
+      return later(structuredClone(demoProfiles), 100)
+    case 'profiles_create': {
+      const profile: TruckProfile = {
+        schemaVersion: 1,
+        id: `demo-${Date.now()}`,
+        name: String(args?.name ?? 'Nuevo perfil'),
+        vehicle: (args?.vehicle as VehicleIdentity | null) ?? null,
+        appearance: { theme: 'electric', wallpaper: null, accentColor: '#35D9FF' },
+        applications: [],
+        shortcuts: [],
+        layout: {},
+        createdAt: Math.floor(Date.now() / 1000),
+        updatedAt: Math.floor(Date.now() / 1000),
+      }
+      demoProfiles = [...demoProfiles, profile]
+      return later(profile, 100)
+    }
+    case 'profiles_assign': {
+      const profile = demoProfiles.find((item) => item.id === args?.id)
+      if (!profile) return Promise.reject(new Error('El perfil ya no existe.'))
+      profile.vehicle = args?.vehicle as VehicleIdentity
+      profile.updatedAt = Math.floor(Date.now() / 1000)
+      return later(profile, 100)
+    }
+    case 'profiles_update': {
+      const updated = args?.profile as TruckProfile
+      demoProfiles = demoProfiles.map((item) => item.id === updated.id ? updated : item)
+      return later(updated, 100)
+    }
+    case 'profiles_delete':
+      demoProfiles = demoProfiles.filter((item) => item.id !== args?.id && item.id !== 'default')
+      return later(undefined, 100)
     case 'setup_state':
       return later(setup, 120)
     case 'game_running':
@@ -378,21 +427,19 @@ export function answer(command: string, args?: Record<string, unknown>): Promise
       signIn('appleMusic')
       return later(undefined)
     case 'open_support_page':
-      window.open('https://kreosus.com/enes-less', '_blank', 'noopener')
+      window.open('https://github.com/FederalVTC/CabinOS', '_blank', 'noopener')
       return later(undefined)
     case 'open_social':
       window.open(
         args?.site === 'youtube'
-          ? 'https://www.youtube.com/@tyraness'
-          : args?.site === 'patreon'
-            ? 'https://www.patreon.com/c/westmods'
-            : 'https://discord.com/invite/Jt34SmwU6',
+          ? 'https://www.youtube.com/@elabuelostreaming'
+          : 'https://github.com/FederalVTC/CabinOS',
         '_blank',
         'noopener',
       )
       return later(undefined)
     case 'app_log_place':
-      return later('C:\\Users\\Player\\Documents\\WestPlay\\logs\\app.log')
+      return later('C:\\Users\\Player\\AppData\\Local\\CabinOS\\logs\\app.log')
     case 'youtube_sign_out':
       setTimeout(() => {
         accounts.youtube = false
