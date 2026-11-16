@@ -152,6 +152,17 @@ function status(): HostStatus {
     screenDrawing: live,
     // `?game=unsupported`: in a truck WestPlay doesn't show in.
     truckSupported: gameState === 'unsupported' ? false : live ? true : null,
+    truck:
+      gameState === 'off'
+        ? null
+        : {
+            id: 'vehicle.scania.s_2016',
+            brandId: 'scania',
+            brand: 'Scania',
+            name: 'S',
+            fingerprint: 'preview-scania-s',
+            identityConfident: true,
+          },
     // `?coach=26`: in a coach whose passengers' set plays through 26 speakers.
     coachSpeakers: live && query.has('coach') ? Number(query.get('coach')) : null,
     gameElevated: gameState !== 'off' && query.has('elevated'),
