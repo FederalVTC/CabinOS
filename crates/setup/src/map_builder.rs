@@ -18,11 +18,11 @@ use crate::map::{self, BuildError, LeftOut};
 use crate::profiles::Profile;
 
 /// The map builder's file, beside WestPlay's.
-pub const FILE_NAME: &str = "westplay-maps.exe";
+pub const FILE_NAME: &str = "cabinos-maps.exe";
 
 /// The environment variable that tells the map builder which memory allocator to use ([`MIMALLOC`]: mimalloc;
 /// otherwise Windows'), read before its first allocation: a process has one for its whole life.
-pub const ALLOCATOR_VARIABLE: &str = "WESTPLAY_MAP_ALLOCATOR";
+pub const ALLOCATOR_VARIABLE: &str = "CABINOS_MAP_ALLOCATOR";
 pub const MIMALLOC: &str = "mimalloc";
 
 /// What to build.
