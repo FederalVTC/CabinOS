@@ -295,7 +295,7 @@ mod tests {
         // Active in every profile, over the game's: its copy, marked.
         let both = vec![truck_files.clone(), dashboard_files.clone()];
         let found = marks(&game.mounted(), &mods, &trucks, &[both.clone(), vec![dashboard_files.clone()]]);
-        assert!(marked(&found).contains("black.mat") && marked(&found).contains("westplay.cab"));
+        assert!(marked(&found).contains("black.mat") && marked(&found).contains("cabinos.cab"));
         // Active in one profile only: the two load different copies, left as it is.
         let found = marks(&game.mounted(), &mods, &trucks, &[both, vec![truck_files]]);
         assert_eq!(found.scripts, []);
