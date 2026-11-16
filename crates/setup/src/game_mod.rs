@@ -1,17 +1,17 @@
-//! WestPlay's game mod (`westplay.scs`), built on the player's PC from their own game: for each screen layout
+//! CabinOS's game mod (`cabinos.scs`), built on the player's PC from their own game: for each screen layout
 //! (`westplay_shared::screen_layouts`), the game's GPS screen scripts with one image added as the top layer of
-//! their "screen on" group, the screen texture WestPlay draws into. Nothing of the game's is shipped: the
-//! scripts are the player's own copy's, patched, and the rest is WestPlay's.
+//! their "screen on" group, the screen texture CabinOS draws into. Nothing of the game's is shipped: the
+//! scripts are the player's own copy's, patched, and the rest is CabinOS's.
 //!
 //! And the cab's mark in the dashboard scripts of the trucks the tablet goes in (`cab_mark`).
 //!
 //! Each layout's texture is SCREEN_WIDTH x (SCREEN_HEIGHT + the layout's index), so the plugin knows from its
 //! size which kind of screen the game draws. It starts fully transparent: until the plugin fills it, or with
-//! WestPlay off, the game's own screen shows through. A layout whose script the game doesn't have (a DLC the
+//! CabinOS off, the game's own screen shows through. A layout whose script the game doesn't have (a DLC the
 //! player doesn't own) is left out.
 //!
-//! It isn't put in the game's `mod` folder or shown in its Mod Manager: it's written into WestPlay's own folder
-//! (`places::westplay_documents`), and WestPlay's plugin mounts it into the game itself, first of all mods, in
+//! It isn't put in the game's `mod` folder or shown in its Mod Manager: it's written into CabinOS's own folder
+//! (`places::westplay_documents`), and CabinOS's plugin mounts it into the game itself, first of all mods, in
 //! every mode (single player, Convoy, TruckersMP). A copy in the game's `mod` folder is taken out
 //! (`uninstall::remove_mod`): with both, the game has the screens' scripts twice and stops when a screen starts.
 //!
@@ -31,15 +31,15 @@ use westplay_shared::{
 use crate::cab_mark;
 use crate::game::Kind;
 
-/// The mod's file for the game `kind`, in WestPlay's own folder (`places::westplay_documents`): each game's own
+/// The mod's file for the game `kind`, in CabinOS's own folder (`places::westplay_documents`): each game's own
 /// (`westplay_shared::mod_file`).
 pub fn file_name(kind: Kind) -> &'static str {
     westplay_shared::mod_file(kind.sdk_id())
 }
 /// Where the mod's screen materials and textures live in the game's file system.
-const SCREEN_DIR: &str = "material/ui/westplay";
+const SCREEN_DIR: &str = "material/ui/cabinos";
 /// The screen's draw order: the game draws a script's elements by their layers, over all of it whatever group they're
-/// in (the stock elements use layers 0 to 6), and WestPlay's is over every one of the game's but the parking camera's
+/// in (the stock elements use layers 0 to 6), and CabinOS's is over every one of the game's but the parking camera's
 /// ([`lift_parking_camera`]).
 const SCREEN_LAYER: u32 = 100;
 /// The "screen on" group's id in the GPS scripts.
@@ -48,10 +48,10 @@ const SCREEN_ON_GROUP: &str = "100";
 /// as it reverses or as the player turns it on).
 const PARKING_CAMERA_GROUP: &str = "910";
 /// The parking camera's mark's texture (`westplay_shared::PARKING_MARK_WIDTH`), in the camera's group: drawn only as
-/// the game shows the camera, so the plugin can tell WestPlay's screen is under it.
+/// the game shows the camera, so the plugin can tell CabinOS's screen is under it.
 const PARKING_MARK: &str = "parking_mark";
 
-/// A screen of WestPlay's own making, for interiors the game gives the same screen script as others: the Smart
+/// A screen of CabinOS's own making, for interiors the game gives the same screen script as others: the Smart
 /// Dash Advanced (12.9") includes the same screens file as the 10.1" (`computers_2025.sui`, naming one GPS
 /// script), so the mod couldn't tell them apart, and the larger screen got the smaller one's sizing. The
 /// layout's script (its one, in `screen_layouts.txt`) is a copy of `source`, patched as the others are; its
@@ -78,7 +78,7 @@ const OWN_SCREENS: &[OwnScreen] = &[OwnScreen {
 }];
 
 /// The part of a GPS script's screen its display shows, where the display shows only part of it: fractions of
-/// the "screen on" group's width from the left and of its height from the top. WestPlay's image goes on that
+/// the "screen on" group's width from the left and of its height from the top. CabinOS's image goes on that
 /// part alone, so none of it is cut off and it isn't drawn out of shape.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ShownPart {
@@ -88,7 +88,7 @@ pub struct ShownPart {
     pub bottom: f64,
 }
 
-/// The parts shown, by layout. The stock GPS screen (`ui/gps.sii`, a 256 x 256 square) is WestPlay's only in
+/// The parts shown, by layout. The stock GPS screen (`ui/gps.sii`, a 256 x 256 square) is CabinOS's only in
 /// the Scania S and R's 7" display, which shows the square's full width (0.5%-99.5%) and rows 12.2%-73.5%
 /// from its top: 254 x 157 of it, 1.615:1, as the interior's model maps its screen piece
 /// (`scania_2016/interior/model.pmg`, piece 80, `gps.tobj`: PLAN.md section C). Stretched over the whole
@@ -106,12 +106,12 @@ const SHOWN_PARTS: &[(&str, ShownPart)] = &[
     ("volvo-fh", ShownPart { left: 0.0054, right: 0.9946, top: 0.0055, bottom: 0.9945 }),
 ];
 
-/// A mod vehicle's own screen WestPlay draws on (owner 2026-10-24, Oyuncuyusbis' coaches: "directly in their
+/// A mod vehicle's own screen CabinOS draws on (owner 2026-10-24, Oyuncuyusbis' coaches: "directly in their
 /// screen"), from the installed mod that brings the vehicle: the layout's script (its one, in
-/// `screen_layouts.txt`) is a copy of the mod's `source`, patched as the game's are, WestPlay's image on the part
+/// `screen_layouts.txt`) is a copy of the mod's `source`, patched as the game's are, CabinOS's image on the part
 /// of it the display shows (`shown`); and the vehicle's interiors naming `source` (`gps_path`), those whose
 /// `model` is one of `models` (all of them, with none), are copies of the mod's with `gps_path` naming the copy and
-/// the screen drawn at [`SHARP_SIZE`] (theirs 256 x 256 or 512 x 512, of which only a band shows). WestPlay's own
+/// the screen drawn at [`SHARP_SIZE`] (theirs 256 x 256 or 512 x 512, of which only a band shows). CabinOS's own
 /// script, not the mod's: two of the coaches name the same path (`actros_gps.sii`) for different scripts, another
 /// truck's mod may bring a script by that path too, and one coach's interiors show two parts of theirs. Built
 /// whole or not at all: if anything isn't as read (a version of the mod not read yet), the layout is left out and
@@ -167,17 +167,17 @@ pub fn mod_screen_layout(layout: &str) -> bool {
     MOD_SCREENS.iter().any(|screen| screen.layout == layout)
 }
 
-/// A screen of the game's own whose script is a bare window (no "screen on" group): WestPlay's image goes on the part
+/// A screen of the game's own whose script is a bare window (no "screen on" group): CabinOS's image goes on the part
 /// of the window the screen's glass shows (`shown`). The script is the game's, patched as the GPS screens' are, and
-/// WestPlay shows on it only in its trucks (`westplay_shared::screen_supported`); a player without it (the DLC it's
-/// from) gets a window of WestPlay's at its path. Nothing of the mod whose part shows it is changed.
+/// CabinOS shows on it only in its trucks (`westplay_shared::screen_supported`); a player without it (the DLC it's
+/// from) gets a window of CabinOS's at its path. Nothing of the mod whose part shows it is changed.
 struct WindowScreen {
     layout: &'static str,
     shown: ShownPart,
 }
 
 /// The game's toy GPS (Cabin Accessories: `gps.dlc_toys.sii`, a 300 x 168 window), the screen of Oyuncuyusbis' Setra S
-/// 516 HD/2's tablet part ("Gps", on either of its mounts): WestPlay on it rather than on the bus's own screen (owner
+/// 516 HD/2's tablet part ("Gps", on either of its mounts): CabinOS on it rather than on the bus's own screen (owner
 /// 2026-10-26: "way better"; "we should not change anything of the bus mod, just detect that screen"). The tablet's
 /// screen, 20.1 x 12.2 cm (1.648:1), shows 2.14%-97.86% of the part's texture both ways (its models' screen piece,
 /// `examples/cab_model` CAB_VERTS), drawn at the part's own 512 x 256.
@@ -186,7 +186,7 @@ const WINDOW_SCREENS: &[WindowScreen] = &[WindowScreen {
     shown: ShownPart { left: 0.0214, right: 0.9786, top: 0.0214, bottom: 0.9786 },
 }];
 
-/// The vehicles whose own screens WestPlay draws on ([`MOD_SCREENS`], and [`WINDOW_SCREENS`]' trucks).
+/// The vehicles whose own screens CabinOS draws on ([`MOD_SCREENS`], and [`WINDOW_SCREENS`]' trucks).
 pub fn mod_screen_trucks() -> impl Iterator<Item = &'static str> {
     let mut trucks: Vec<&'static str> = MOD_SCREENS
         .iter()
@@ -199,7 +199,7 @@ pub fn mod_screen_trucks() -> impl Iterator<Item = &'static str> {
 }
 
 /// The mods among `mods` (archives or folders: the installed ones, in no particular order) that bring a vehicle
-/// whose own screen WestPlay draws on, mounted, for [`build`]. Two copies of one vehicle's mod: the last listed is
+/// whose own screen CabinOS draws on, mounted, for [`build`]. Two copies of one vehicle's mod: the last listed is
 /// read.
 pub fn mod_screen_mods(mods: &[PathBuf]) -> GameFiles {
     let mut mounted = GameFiles::new(Vec::new());
@@ -260,7 +260,7 @@ fn mod_screen_files(
     Ok(files)
 }
 
-/// Whether the mod built at `built` (WestPlay's `.scs`) has the mod vehicles' screens as `screen_mods` (the installed
+/// Whether the mod built at `built` (CabinOS's `.scs`) has the mod vehicles' screens as `screen_mods` (the installed
 /// mods bringing them: [`mod_screen_mods`]) would make them now: each screen's files there, the same, and no screen of
 /// a vehicle whose mod is gone (or changed so it can't be made).
 pub fn mod_screens_current(screen_mods: &GameFiles, built: &Path) -> bool {
@@ -288,7 +288,7 @@ fn quoted(text: &str, name: &str) -> Option<String> {
     found.next().is_none().then_some(first)
 }
 
-/// An interior's definition naming `script` (WestPlay's) as its screen, drawn at [`SHARP_SIZE`]: its `gps_path`
+/// An interior's definition naming `script` (CabinOS's) as its screen, drawn at [`SHARP_SIZE`]: its `gps_path`
 /// line changed, its `gps_drawable_size` line (if it has one) replaced, or one added after `gps_path`.
 fn own_screen_interior(text: &str, script: &str) -> Result<Vec<u8>, String> {
     let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
@@ -309,7 +309,7 @@ fn own_screen_interior(text: &str, script: &str) -> Result<Vec<u8>, String> {
 
 /// The 7" Scania's screen drawn sharp. The interiors naming no GPS screen of their own (all but the Smart
 /// Dash's) get the stock one at the game's default size: a 256 x 256 target (the 7" model's `gps.tobj` piece
-/// was drawn with one: PLAN.md section C), into which WestPlay's 1280 x 720 frame was shrunk five times over,
+/// was drawn with one: PLAN.md section C), into which CabinOS's 1280 x 720 frame was shrunk five times over,
 /// and of which only 254 x 157 pixels show (owner 2026-10-21: "wtf is this resolution"). At 1024 x 1024
 /// (square still, so the display shows the same part of it), about 1016 x 628 show, near the frame's own size.
 /// Set as the Smart Dash's screens file sets its own (`gps_drawable_size`).
@@ -465,7 +465,7 @@ pub struct Built {
 pub enum BuildError {
     /// A script couldn't be read from the game.
     Read(String),
-    /// A script isn't laid out as WestPlay expects (a new game version, or a mod's own).
+    /// A script isn't laid out as CabinOS expects (a new game version, or a mod's own).
     Script { script: &'static str, problem: String },
 }
 
@@ -492,7 +492,7 @@ pub fn build(
 ) -> Result<(Vec<u8>, Built), BuildError> {
     let mut files: Vec<(String, Vec<u8>)> = vec![
         ("manifest.sii".into(), manifest().into_bytes()),
-        ("description.txt".into(), b"WestPlay screens. Requires the WestPlay app and plugin.\n".to_vec()),
+        ("description.txt".into(), b"CabinOS screens for Euro Truck Simulator 2. Requires CabinOS.\n".to_vec()),
     ];
     let mut built = Built::default();
     for (index, layout) in screen_layouts().iter().enumerate() {
@@ -501,7 +501,7 @@ pub fn build(
         files.push((format!("{SCREEN_DIR}/{texture}.mat"), material(&texture).into_bytes()));
         files.push((format!("{SCREEN_DIR}/{texture}.tobj"), tobj(&format!("/{SCREEN_DIR}/{texture}.dds"))));
         files.push((format!("{SCREEN_DIR}/{texture}.dds"), transparent_dds(SCREEN_WIDTH, rows)));
-        // WestPlay's tablet: its model shows the texture (no script draws it), whole or missing.
+        // CabinOS's tablet: its model shows the texture (no script draws it), whole or missing.
         if layout.id == TABLET {
             let screen = format!("/{SCREEN_DIR}/{texture}.tobj");
             let trucks = crate::tablet::trucks(game).map(|own| {
@@ -537,7 +537,7 @@ pub fn build(
             }
             continue;
         }
-        // A screen of WestPlay's own making: whole, or missing.
+        // A screen of CabinOS's own making: whole, or missing.
         if let Some(own) = OWN_SCREENS.iter().find(|own| own.layout == layout.id) {
             match layout.gps_scripts {
                 [script] => match own_screen_files(game, own, script, &texture, rows) {
@@ -552,7 +552,7 @@ pub fn build(
             continue;
         }
         // Each of its scripts the game has (a layout whose scripts it has none of is missing); a window screen's,
-        // WestPlay's own window where the game has none.
+        // CabinOS's own window where the game has none.
         let window = WINDOW_SCREENS.iter().find(|screen| screen.layout == layout.id);
         let mut any = false;
         for &script in layout.gps_scripts {
@@ -606,7 +606,7 @@ pub fn build(
             }
         }
     }
-    // The coaches' screens drawn sharp, where their screens are WestPlay's.
+    // The coaches' screens drawn sharp, where their screens are CabinOS's.
     for &(path, script) in BUS_SCREENS {
         let ours = screen_layouts()
             .iter()
@@ -623,9 +623,9 @@ pub fn build(
     Ok((zip(&files), built))
 }
 
-/// Writes the mod into `mod_dir` (WestPlay's own folder), replacing the one there whole: written beside it
+/// Writes the mod into `mod_dir` (CabinOS's own folder), replacing the one there whole: written beside it
 /// first, then moved over it, so the plugin never finds half a file.
-/// A step that failed names itself and its path (`writing C:\…\WestPlay\westplay.scs.partial: …`), so a
+/// A step that failed names itself and its path (`writing C:\…\CabinOS\cabinos.scs.partial: …`), so a
 /// player's report says which.
 pub fn install(bytes: &[u8], mod_dir: &Path, kind: Kind) -> std::io::Result<PathBuf> {
     let step = |what: &str, path: &Path| {
@@ -649,7 +649,7 @@ pub fn texture_name(layout: &ScreenLayout) -> String {
 /// player's own truck screen, so players with and without it join each other's convoys.
 fn manifest() -> String {
     format!(
-        "SiiNunit\n{{\nmod_package : .package_name\n{{\n\tpackage_version: \"{}\"\n\tdisplay_name: \"WestPlay\"\n\tauthor: \"Western\"\n\tcategory[]: \"ui\"\n\tdescription_file: \"description.txt\"\n\tmp_mod_optional: true\n}}\n}}\n",
+        "SiiNunit\n{{\nmod_package : .package_name\n{{\n\tpackage_version: \"{}\"\n\tdisplay_name: \"CabinOS\"\n\tauthor: \"El Abuelo Streaming\"\n\tcategory[]: \"ui\"\n\tdescription_file: \"description.txt\"\n\tmp_mod_optional: true\n}}\n}}\n",
         env!("CARGO_PKG_VERSION")
     )
 }
@@ -676,7 +676,7 @@ pub(crate) fn tobj(dds_path: &str) -> Vec<u8> {
 }
 
 /// A fully transparent `width` x `height` texture: a DDS with a DX10 header, B8G8R8A8_UNORM_SRGB (91), the
-/// format the plugin copies WestPlay's frames into.
+/// format the plugin copies CabinOS's frames into.
 fn transparent_dds(width: u32, height: u32) -> Vec<u8> {
     screen_dds(width, height, &vec![0; (width * height * 4) as usize])
 }
@@ -738,7 +738,7 @@ fn field<'a>(lines: &[&'a str], block: &Block, name: &str) -> Option<&'a str> {
     })
 }
 
-/// Adds the WestPlay screen image `texture` as the top layer of the GPS script's "screen on" group (id 100):
+/// Adds the CabinOS screen image `texture` as the top layer of the GPS script's "screen on" group (id 100):
 /// a child of the group, over the whole of it, or over the part of it the display shows (`shown`). The texture is
 /// `rows` tall (`ScreenLayout::texture_height`): the frame's [`SCREEN_HEIGHT`] rows go on that part, the rows beyond
 /// them (the layout's mark, repeating the frame's bottom row) below it, off the screen; stretched over the part
@@ -768,7 +768,7 @@ pub fn patch_gps_script(text: &str, texture: &str, shown: Option<&ShownPart>, ro
     let bottom = top - (top - bottom) * f64::from(rows) / f64::from(SCREEN_HEIGHT);
     let at = |value: f64| format!("{}", value.round() as i64);
     let (left, right, top, bottom) = (at(l + (r - l) * part.left), at(l + (r - l) * part.right), at(top), at(bottom));
-    let element = "_nameless.westplay.screen";
+    let element = "_nameless.cabinos.screen";
 
     let mut body = Vec::new();
     for line in &lines[group.start + 1..group.end] {
@@ -816,7 +816,7 @@ pub fn patch_gps_script(text: &str, texture: &str, shown: Option<&ShownPart>, ro
     let patched = patched.join(newline);
     // The parking camera's mark in its group, drawn with it: the screen under the camera then (no clicks to it).
     match parking_camera(&lines, &blocks) {
-        Some(camera) => add_to(&patched, camera.name, "_nameless.westplay.parking", PARKING_MARK, mark_corner),
+        Some(camera) => add_to(&patched, camera.name, "_nameless.cabinos.parking", PARKING_MARK, mark_corner),
         None => Ok(patched),
     }
 }
@@ -835,10 +835,10 @@ fn mark_corner([left, right, top, bottom]: [f64; 4]) -> [f64; 4] {
 }
 
 /// The parking camera of a GPS script (its group with id [`PARKING_CAMERA_GROUP`], and everything in it) a layer of
-/// its own over WestPlay's screen ([`SCREEN_LAYER`]): each of its elements' layers past it by its own, so the
+/// its own over CabinOS's screen ([`SCREEN_LAYER`]): each of its elements' layers past it by its own, so the
 /// camera keeps its order (its background, its picture, its marks). The game draws by layers across the whole
-/// script, so WestPlay's image (in the "screen on" group) was drawn over the camera, though the camera's group comes
-/// after that group (owner 2026-11-13, reversing a coach: "WestPlay should be under it, not over"). A script with
+/// script, so CabinOS's image (in the "screen on" group) was drawn over the camera, though the camera's group comes
+/// after that group (owner 2026-11-13, reversing a coach: "CabinOS should be under it, not over"). A script with
 /// no camera stays as it is.
 fn lift_parking_camera(text: &str) -> Result<String, String> {
     let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
@@ -885,12 +885,12 @@ fn lift_parking_camera(text: &str) -> Result<String, String> {
 /// tablet was taken for leaving the cab, the music muffled (owner 2026-11-06). So the mark is some pixels on any
 /// screen, 1/64 of the window each way ([`MARK_SHARE`]), and in each display as well as the window.
 pub fn patch_dashboard_script(text: &str, texture: &str) -> Result<String, String> {
-    if text.contains("_nameless.westplay.cab") {
+    if text.contains("_nameless.cabinos.cab") {
         return Err("has the mark already".into());
     }
-    let mut patched = add_to_window(text, "_nameless.westplay.cab", texture, mark_corner)?;
+    let mut patched = add_to_window(text, "_nameless.cabinos.cab", texture, mark_corner)?;
     for (index, group) in full_window_groups(text)?.into_iter().enumerate() {
-        patched = add_to(&patched, &group, &format!("_nameless.westplay.cab{index}"), texture, mark_corner)?;
+        patched = add_to(&patched, &group, &format!("_nameless.cabinos.cab{index}"), texture, mark_corner)?;
     }
     Ok(patched)
 }
@@ -918,17 +918,17 @@ fn full_window_groups(text: &str) -> Result<Vec<String>, String> {
         .collect())
 }
 
-/// Adds the WestPlay screen image `texture` to a window screen's script ([`WindowScreen`]), over the part of the
+/// Adds the CabinOS screen image `texture` to a window screen's script ([`WindowScreen`]), over the part of the
 /// window its glass shows (`shown`), on top. The rest of the script stays as it is.
 pub fn patch_window_script(text: &str, texture: &str, shown: &ShownPart, rows: u32) -> Result<String, String> {
-    if text.contains("_nameless.westplay.screen") {
+    if text.contains("_nameless.cabinos.screen") {
         return Err("has the screen already".into());
     }
     // Its coordinates may go up the screen or down it: its top is the top, either way. The script's coordinates are
     // whole units, a unit some pixels of the screen: each edge rounded outward, and a unit further, so none of what's
     // under it shows at the glass's edge (rounded to the nearest, the toy GPS's map showed a pixel's line at the
     // Setra's tablet's top and bottom: owner 2026-10-26).
-    add_to_window(text, "_nameless.westplay.screen", texture, |[l, r, t, b]| {
+    add_to_window(text, "_nameless.cabinos.screen", texture, |[l, r, t, b]| {
         let outward = |inside: f64, outside: f64, value: f64| {
             if outside >= inside { value.ceil() + 1.0 } else { value.floor() - 1.0 }
         };
@@ -945,12 +945,12 @@ pub fn patch_window_script(text: &str, texture: &str, shown: &ShownPart, rows: u
     })
 }
 
-/// A window of WestPlay's for a window screen whose script the game doesn't have: 1000 units each way, nothing in it.
+/// A window of CabinOS's for a window screen whose script the game doesn't have: 1000 units each way, nothing in it.
 fn own_window() -> String {
     [
         "SiiNunit",
         "{",
-        "ui::window : _nameless.westplay.window {",
+        "ui::window : _nameless.cabinos.window {",
         " window_handler: null",
         " clip_children: true",
         " keep_aspect: none",
@@ -1121,11 +1121,11 @@ mod tests {
         let mod_dir = root.join("Euro Truck Simulator 2").join("mod");
         let path = install(b"mod", &mod_dir, Kind::Ets2).unwrap();
         assert_eq!(std::fs::read(&path).unwrap(), b"mod");
-        assert_eq!(path.file_name().unwrap(), "westplay.scs");
-        assert!(!mod_dir.join("westplay.scs.partial").exists());
+        assert_eq!(path.file_name().unwrap(), "cabinos.scs");
+        assert!(!mod_dir.join("cabinos.scs.partial").exists());
         // ATS's beside it, ETS2's left as it is.
         let ats = install(b"ats mod", &mod_dir, Kind::Ats).unwrap();
-        assert_eq!(ats.file_name().unwrap(), "westplay_ats.scs");
+        assert_eq!(ats.file_name().unwrap(), "cabinos_ats.scs");
         assert_eq!(std::fs::read(&path).unwrap(), b"mod");
         // A file where the folder should be: the step and its path in the error.
         let blocked = root.join("blocked");
@@ -1135,7 +1135,7 @@ mod tests {
         let _ = std::fs::remove_dir_all(&root);
     }
 
-    /// Optional in convoys: a friend without WestPlay can join, and be joined.
+    /// Optional in convoys: a friend without CabinOS can join, and be joined.
     #[test]
     fn the_mod_is_optional_in_convoys() {
         let units = westplay_mapdata::sii::parse(&manifest());
@@ -1149,8 +1149,8 @@ mod tests {
     #[test]
     fn adds_the_screen_on_top_of_the_screen_on_group() {
         let patched = patch_gps_script(SCRIPT, "screen_generic", None, SCREEN_HEIGHT).unwrap();
-        assert!(patched.contains(" my_children: 3\n my_children[0]: _nameless.3\n my_children[1]: _nameless.4\n my_children[2]: _nameless.westplay.screen\n"));
-        assert!(patched.contains("ui::text : _nameless.westplay.screen {\n text: \"<img src=/material/ui/westplay/screen_generic.mat xscale=stretch yscale=stretch>\"\n coords_l: 0\n coords_r: 1279\n coords_t: 719\n coords_b: 0\n"));
+        assert!(patched.contains(" my_children: 3\n my_children[0]: _nameless.3\n my_children[1]: _nameless.4\n my_children[2]: _nameless.cabinos.screen\n"));
+        assert!(patched.contains("ui::text : _nameless.cabinos.screen {\n text: \"<img src=/material/ui/cabinos/screen_generic.mat xscale=stretch yscale=stretch>\"\n coords_l: 0\n coords_r: 1279\n coords_t: 719\n coords_b: 0\n"));
         assert!(patched.contains(" layer: 100\n tab: -1\n pointer: -1\n my_parent: _nameless.2\n}\n\n}\n"));
         // The window still has its one child; the rest is as it was.
         assert!(patched.starts_with("SiiNunit\n{\nui::window : _nameless.1 {\n my_children: 1\n"));
@@ -1169,7 +1169,7 @@ mod tests {
             let line = block.lines().find(|line| line.trim().starts_with("layer:")).unwrap();
             line.trim()["layer:".len()..].trim().parse::<u32>().unwrap()
         };
-        let screen = layer("_nameless.westplay.screen");
+        let screen = layer("_nameless.cabinos.screen");
         assert_eq!(screen, SCREEN_LAYER);
         // The game's map, and the groups it's in, under the screen as they were.
         assert_eq!((layer("_nameless.on"), layer("_nameless.map"), layer("_nameless.1")), (1, 2, 0));
@@ -1179,12 +1179,12 @@ mod tests {
         assert!(camera.iter().all(|&layer| layer > screen), "{camera:?}");
         assert!(layer("_nameless.bg") < layer("_nameless.pic") && layer("_nameless.pic") < layer("_nameless.arrows"));
         // The screen still in the "screen on" group.
-        assert!(patched.contains(" my_children[1]: _nameless.westplay.screen\n"));
+        assert!(patched.contains(" my_children[1]: _nameless.cabinos.screen\n"));
         // The camera's mark in the camera's group (its last child), drawn only with it: transparent, in its corner.
         assert!(patched.contains(" my_children: 4\n my_children[0]: _nameless.bg\n"), "{patched}");
-        assert!(patched.contains(" my_children[3]: _nameless.westplay.parking\n"));
-        let mark = patched.split("ui::text : _nameless.westplay.parking {").nth(1).unwrap();
-        assert!(mark.contains("<img src=/material/ui/westplay/parking_mark.mat"));
+        assert!(patched.contains(" my_children[3]: _nameless.cabinos.parking\n"));
+        let mark = patched.split("ui::text : _nameless.cabinos.parking {").nth(1).unwrap();
+        assert!(mark.contains("<img src=/material/ui/cabinos/parking_mark.mat"));
         assert!(mark.contains(" my_parent: _nameless.cam\n"));
         // No mark where there's no camera.
         let plain = patch_gps_script(SCRIPT, "screen_generic", None, SCREEN_HEIGHT).unwrap();
@@ -1286,7 +1286,7 @@ mod tests {
             std::fs::write(root.join(path), text.replace(script, "ui/dashboard/other_gps.sii")).unwrap();
             assert!(sized_screens_file(&files, path, script, BUS_SIZE).is_err());
         }
-        // Each a layout's: the coaches' screens WestPlay's.
+        // Each a layout's: the coaches' screens CabinOS's.
         for (_, script) in BUS_SCREENS {
             assert!(screen_layouts().iter().any(|layout| layout.gps_scripts.contains(script)), "{script}");
         }
@@ -1312,7 +1312,7 @@ mod tests {
         let files = GameFiles::new(vec![westplay_mapdata::files::Mount::Folder(root.clone())]);
         let (bytes, built) = build(&files, &[], &GameFiles::new(Vec::new()), &cab_mark::Marks::default()).unwrap();
         assert_eq!(built.not_sharp, None);
-        let out = root.join("westplay.scs");
+        let out = root.join("cabinos.scs");
         std::fs::write(&out, bytes).unwrap();
         let archive = westplay_mapdata::archive::Archive::open(&out).unwrap();
         let text = |path: &str| archive.read(path).unwrap().map(|bytes| String::from_utf8(bytes).unwrap());
@@ -1335,7 +1335,7 @@ mod tests {
     fn marks_a_dashboard_in_its_windows_corner_once() {
         let script = "SiiNunit\r\n{\r\nui::window : _nameless.w {\r\n my_children: 0\r\n coords_l: 10\r\n coords_r: 500\r\n coords_t: 0\r\n coords_b: 300\r\n my_parent: null\r\n}\r\n\r\n}\r\n";
         let patched = patch_dashboard_script(script, "cab_mark").unwrap();
-        assert!(patched.contains(" my_children: 1\r\n my_children[0]: _nameless.westplay.cab\r\n"), "{patched}");
+        assert!(patched.contains(" my_children: 1\r\n my_children[0]: _nameless.cabinos.cab\r\n"), "{patched}");
         // Its coordinates going down the screen: up from the bottom corner, 1/64 of the window each way (rounded up).
         assert!(
             patched.contains(" coords_l: 10\r\n coords_r: 18\r\n coords_t: 295\r\n coords_b: 300\r\n"),
@@ -1356,11 +1356,11 @@ mod tests {
     fn marks_each_display_of_a_dashboard_that_has_them() {
         let script = "SiiNunit\n{\nui::window : _nameless.wnd {\n my_children: 2\n my_children[0]: _nameless.d1\n my_children[1]: _nameless.small\n coords_l: 0\n coords_r: 1440\n coords_t: 540\n coords_b: 0\n my_parent: null\n}\n\nui::group : _nameless.d1 {\n my_children: 0\n coords_l: 0\n coords_r: 1440\n coords_t: 540\n coords_b: 0\n my_parent: _nameless.wnd\n}\n\nui::group : _nameless.small {\n my_children: 0\n coords_l: 0\n coords_r: 100\n coords_t: 540\n coords_b: 0\n my_parent: _nameless.wnd\n}\n\n}\n";
         let patched = patch_dashboard_script(script, "cab_mark").unwrap();
-        assert!(patched.contains("ui::group : _nameless.d1 {\n my_children: 1\n my_children[0]: _nameless.westplay.cab0\n"), "{patched}");
+        assert!(patched.contains("ui::group : _nameless.d1 {\n my_children: 1\n my_children[0]: _nameless.cabinos.cab0\n"), "{patched}");
         assert!(patched.contains("my_parent: _nameless.d1\n"), "{patched}");
         // Not in a group that covers only part of the window.
         assert!(!patched.contains("my_parent: _nameless.small\n}\n\nui::text"), "{patched}");
-        assert_eq!(patched.matches("<img src=/material/ui/westplay/cab_mark.mat").count(), 2, "{patched}");
+        assert_eq!(patched.matches("<img src=/material/ui/cabinos/cab_mark.mat").count(), 2, "{patched}");
         // 1/64 of 1440 by 540, rounded up: 23 by 9 units, from the bottom left corner up.
         assert!(patched.contains(" coords_l: 0\n coords_r: 23\n coords_t: 9\n coords_b: 0\n"), "{patched}");
     }
@@ -1368,7 +1368,7 @@ mod tests {
     #[test]
     fn keeps_a_scripts_windows_line_endings() {
         let patched = patch_gps_script(&SCRIPT.replace('\n', "\r\n"), "screen_generic", None, SCREEN_HEIGHT).unwrap();
-        assert!(patched.contains(" my_children[2]: _nameless.westplay.screen\r\n") && !patched.contains("\r\r"));
+        assert!(patched.contains(" my_children[2]: _nameless.cabinos.screen\r\n") && !patched.contains("\r\r"));
     }
 
     #[test]
@@ -1404,14 +1404,14 @@ mod tests {
         for layout in screen_layouts().iter().filter(|layout| built.patched.contains(&layout.id)) {
             for script in layout.gps_scripts.iter().filter_map(|script| archive.read(script).unwrap()) {
                 let script = String::from_utf8(script).unwrap();
-                assert!(script.contains("_nameless.westplay.screen"), "{}", layout.id);
+                assert!(script.contains("_nameless.cabinos.screen"), "{}", layout.id);
             }
         }
         // The tablet, in the game's trucks.
         assert!(built.patched.contains(&TABLET));
-        let actros = "def/vehicle/truck/mercedes.actros2014/accessory/toyhang/westplay_tablet.sii";
+        let actros = "def/vehicle/truck/mercedes.actros2014/accessory/toyhang/cabin_tablet.sii";
         assert!(archive.read(actros).unwrap().is_some());
-        assert!(archive.read("vehicle/truck/upgrade/westplay_tablet/westplay_tablet_hang.pmg").unwrap().is_some());
+        assert!(archive.read("vehicle/truck/upgrade/cabin_tablet/cabin_tablet_hang.pmg").unwrap().is_some());
     }
 
     /// A game folder with the Smart Dash's script and screens file, and an Advanced and a 10.1" interior in
@@ -1449,19 +1449,19 @@ mod tests {
         assert!(built.patched.contains(&"scania-2025") && built.patched.contains(&"scania-2025-advanced"));
         // No 7" interiors here (the Smart Dash's alone): the build says the 7" screen stays as the game has it.
         assert_eq!(built.not_sharp.as_deref(), Some("no 7\" interiors"));
-        let out = root.join("westplay.scs");
+        let out = root.join("cabinos.scs");
         std::fs::write(&out, bytes).unwrap();
         let archive = westplay_mapdata::archive::Archive::open(&out).unwrap();
         let text = |path: &str| archive.read(path).unwrap().map(|bytes| String::from_utf8(bytes).unwrap());
         // Its own script, patched with its own texture.
-        let script = text("ui/dashboard/westplay_scania_2025_advanced_gps.sii").unwrap();
-        assert!(script.contains("/material/ui/westplay/screen_scania_2025_advanced.mat"), "{script}");
+        let script = text("ui/dashboard/cabinos_scania_2025_advanced_gps.sii").unwrap();
+        assert!(script.contains("/material/ui/cabinos/screen_scania_2025_advanced.mat"), "{script}");
         for truck in ["s", "r"] {
             let dir = format!("def/vehicle/truck/scania.{truck}_2016/interior");
             let screens = text(&format!("{dir}/westplay_computers_2025_advanced.sui")).unwrap();
             assert_eq!(
                 screens,
-                "\tgps_path:\"/ui/dashboard/westplay_scania_2025_advanced_gps.sii\"\r\n\tgps_drawable_size: (1024, 512)\r\n"
+                "\tgps_path:\"/ui/dashboard/cabinos_scania_2025_advanced_gps.sii\"\r\n\tgps_drawable_size: (1024, 512)\r\n"
             );
             let advanced = text(&format!("{dir}/cab_{truck}_high_smartdash_advanced_dark.sii")).unwrap();
             assert!(advanced.contains("@include \"westplay_computers_2025_advanced.sui\"\r\n"), "{advanced}");
@@ -1480,10 +1480,10 @@ mod tests {
         let files = GameFiles::new(vec![westplay_mapdata::files::Mount::Folder(root.clone())]);
         let (bytes, built) = build(&files, &[], &GameFiles::new(Vec::new()), &cab_mark::Marks::default()).unwrap();
         assert!(built.patched.contains(&"scania-2025") && built.missing.contains(&"scania-2025-advanced"));
-        let out = root.join("westplay.scs");
+        let out = root.join("cabinos.scs");
         std::fs::write(&out, bytes).unwrap();
         let archive = westplay_mapdata::archive::Archive::open(&out).unwrap();
-        assert_eq!(archive.read("ui/dashboard/westplay_scania_2025_advanced_gps.sii").unwrap(), None);
+        assert_eq!(archive.read("ui/dashboard/cabinos_scania_2025_advanced_gps.sii").unwrap(), None);
         let interior = "def/vehicle/truck/scania.s_2016/interior/cab_s_high_smartdash_advanced_dark.sii";
         assert_eq!(archive.read(interior).unwrap(), None);
         drop(archive);
@@ -1545,7 +1545,7 @@ mod tests {
                         None,
                     ),
                 ),
-                // Another screen: not WestPlay's.
+                // Another screen: not CabinOS's.
                 ("other.sii", bus_interior("oth.t16shd.interior", &format!("{t16}/model.pmd"), "/ui/gps.sii", None)),
             ],
         );
@@ -1573,20 +1573,20 @@ mod tests {
         // The others' mods aren't installed: their screens left out.
         // The Setra S 516 HD/2's screen is the game's toy GPS's, made whatever mods are installed.
         assert!(built.missing.contains(&"man-lions-coach") && built.patched.contains(&"setra-516"));
-        let out = root.join("westplay.scs");
+        let out = root.join("cabinos.scs");
         std::fs::write(&out, &bytes).unwrap();
         let archive = Archive::open(&out).unwrap();
         let text = |path: &str| archive.read(path).unwrap().map(|bytes| String::from_utf8(bytes).unwrap());
-        // Each layout's own script, WestPlay's image on the band its display shows (13.5%-75.6% from the top of
+        // Each layout's own script, CabinOS's image on the band its display shows (13.5%-75.6% from the top of
         // 256 rows, which count upwards): the frame's 720 rows from 221.4 to 62.5, its texture's 728 (720 and the
         // layout's index, 8) reaching 1.8 lower.
         let script = text("ui/dashboard/westplay_travego_16_gps.sii").unwrap();
-        assert!(script.contains("/material/ui/westplay/screen_travego_16.mat"), "{script}");
+        assert!(script.contains("/material/ui/cabinos/screen_travego_16.mat"), "{script}");
         assert!(script.contains(" coords_t: 221\n coords_b: 61\n"), "{script}");
         // 13.4%-86.6%, 729 rows: the frame's to 34.3, the texture's to 32.0.
         let script = text("ui/dashboard/westplay_travego_16_23_gps.sii").unwrap();
         assert!(script.contains(" coords_t: 222\n coords_b: 32\n"), "{script}");
-        // Each interior naming WestPlay's script for its display, drawn at 1024 x 1024; the other left as it is.
+        // Each interior naming CabinOS's script for its display, drawn at 1024 x 1024; the other left as it is.
         let dir = "def/vehicle/truck/t16shd/interior";
         let standard = text(&format!("{dir}/standard.sii")).unwrap();
         assert!(
@@ -1605,14 +1605,14 @@ mod tests {
         assert!(
             setra_std.contains("gps_drawable_size: (1024, 1024)") && setra_std.contains("westplay_setra_531_gps.sii")
         );
-        // Nothing of the coaches' own scripts: WestPlay's names its own.
+        // Nothing of the coaches' own scripts: CabinOS's names its own.
         assert_eq!(text("ui/dashboard/actros_gps.sii"), None);
         drop(archive);
 
         // The built mod is as the installed coaches want it, until one changes or goes.
         assert!(mod_screens_current(&screen_mods, &out));
         let interior = travego.join(format!("{dir}/stdo.sii"));
-        // Its dashboard changed in a new version of the mod (a size line alone wouldn't change WestPlay's copy, which
+        // Its dashboard changed in a new version of the mod (a size line alone wouldn't change CabinOS's copy, which
         // sets its own).
         let changed =
             std::fs::read_to_string(&interior).unwrap().replace("/ui/dashboard/d.sii", "/ui/dashboard/d2.sii");
@@ -1637,7 +1637,7 @@ mod tests {
         let built_script = |game: &GameFiles| {
             let (bytes, built) = build(game, &[], &GameFiles::new(Vec::new()), &cab_mark::Marks::default()).unwrap();
             assert!(built.patched.contains(&"setra-516"), "{built:?}");
-            let out = root.join("westplay.scs");
+            let out = root.join("cabinos.scs");
             std::fs::write(&out, bytes).unwrap();
             let archive = westplay_mapdata::archive::Archive::open(&out).unwrap();
             // Nothing of the bus's mod: no part of it, no interior.
@@ -1645,22 +1645,22 @@ mod tests {
             assert_eq!(archive.read("def/vehicle/truck/setra516hd/interior/standard.sii").unwrap(), None);
             String::from_utf8(archive.read(script).unwrap().unwrap()).unwrap()
         };
-        // WestPlay's image over the part of the toy GPS's window the tablet's glass shows (2.14%-97.86% each way), on
+        // CabinOS's image over the part of the toy GPS's window the tablet's glass shows (2.14%-97.86% each way), on
         // top of its map: the frame's rows over it to 3.6, its texture's 730 to 1.4, each edge a unit beyond.
         let patched = built_script(&with_toy);
         assert!(
             patched.contains(
-                " my_children: 2\n my_children[0]: _nameless._.map\n my_children[1]: _nameless.westplay.screen\n"
+                " my_children: 2\n my_children[0]: _nameless._.map\n my_children[1]: _nameless.cabinos.screen\n"
             ),
             "{patched}"
         );
         assert!(patched.contains("screen_setra_516.mat"), "{patched}");
         assert!(patched.contains(" coords_l: 5\n coords_r: 295\n coords_t: 166\n coords_b: 0\n"), "{patched}");
-        // A player without Cabin Accessories: a window of WestPlay's at its path, its image alone (the texture's rows
+        // A player without Cabin Accessories: a window of CabinOS's at its path, its image alone (the texture's rows
         // to 8.1).
         let own = built_script(&GameFiles::new(Vec::new()));
         assert!(own.contains(" coords_l: 20\n coords_r: 980\n coords_t: 980\n coords_b: 7\n"), "{own}");
-        // The Setra is one of the vehicles WestPlay draws on (no tablet of WestPlay's in it).
+        // The Setra is one of the vehicles CabinOS draws on (no tablet of CabinOS's in it).
         assert!(mod_screen_trucks().any(|truck| truck == "setra516hd"));
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -1676,7 +1676,7 @@ mod tests {
         let (bytes, built) =
             build(&GameFiles::new(Vec::new()), &[], &mod_screen_mods(&[lions]), &cab_mark::Marks::default()).unwrap();
         assert!(built.missing.contains(&"man-lions-coach"), "{built:?}");
-        let out = root.join("westplay.scs");
+        let out = root.join("cabinos.scs");
         std::fs::write(&out, &bytes).unwrap();
         let archive = Archive::open(&out).unwrap();
         assert_eq!(archive.read("ui/dashboard/westplay_man_lions_coach_gps.sii").unwrap(), None);
