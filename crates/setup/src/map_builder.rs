@@ -1,11 +1,11 @@
-//! A map built in a process of its own, `westplay-maps.exe` (owner 2026-11-06): WestPlay hands it what to build
+//! A map built in a process of its own, `cabinos-maps.exe` (owner 2026-11-06): CabinOS hands it what to build
 //! ([`Request`], one JSON line on its standard input) and hears how it goes ([`Said`], a JSON line each on its
-//! standard output). A build that crashes (a mod read wrong, 2026-11-06: one ended WestPlay with it) ends only that
+//! standard output). A build that crashes (a mod read wrong, 2026-11-06: one ended CabinOS with it) ends only that
 //! process; and the process can use a memory allocator of its own, mimalloc, which a faster build draws twice as
 //! fast with (Windows' own heap takes a lock every thread waits on: the buildings' models 50 s with it, 6 s
-//! without, the base game's map 217 s to 133 s), where WestPlay's own process keeps Windows'.
+//! without, the base game's map 217 s to 133 s), where CabinOS's own process keeps Windows'.
 //!
-//! [`build`] is the build itself, as the process runs it, and as WestPlay runs it in its own process where the
+//! [`build`] is the build itself, as the process runs it, and as CabinOS runs it in its own process where the
 //! process isn't there (a development build that hasn't built it).
 
 use std::path::PathBuf;
@@ -17,7 +17,7 @@ use crate::game::Game;
 use crate::map::{self, BuildError, LeftOut};
 use crate::profiles::Profile;
 
-/// The map builder's file, beside WestPlay's.
+/// The map builder's file, beside CabinOS's.
 pub const FILE_NAME: &str = "cabinos-maps.exe";
 
 /// The environment variable that tells the map builder which memory allocator to use ([`MIMALLOC`]: mimalloc;
@@ -33,7 +33,7 @@ pub struct Request {
     pub profile: Profile,
     /// The language place names come in (`tr_tr`).
     pub language: Option<String>,
-    /// WestPlay's maps folder: the map goes into its own folder in it.
+    /// CabinOS's maps folder: the map goes into its own folder in it.
     pub maps: PathBuf,
     /// Prepare Maps Faster: every thread, more drawn at once while the memory has room.
     pub fast: bool,
@@ -65,7 +65,7 @@ pub struct Size {
     pub sea_cell: f32,
 }
 
-/// What a finished build says beyond the map (each logged by WestPlay).
+/// What a finished build says beyond the map (each logged by CabinOS).
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Outcome {
