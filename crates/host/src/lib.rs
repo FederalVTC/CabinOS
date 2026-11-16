@@ -963,6 +963,13 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                         let _ = webview.post_json(message);
                     }
                 }
+                Some(PageMessage::OpenShortcut { url }) => {
+                    if valid_external_url(&url) {
+                        browser::open(&url);
+                    } else {
+                        log!("[shortcut] rejected an invalid or unsafe web address");
+                    }
+                }
                 Some(PageMessage::Westplay { open }) => {
                     if status.westplay_open != Some(open) {
                         status.westplay_open = Some(open);
@@ -2413,6 +2420,8 @@ enum PageMessage {
     Guidance { line: String },
     /// Whether CabinOS is open on the truck's screen: posted as the page loads and whenever it changes.
     Westplay { open: bool },
+    /// A per-truck shortcut: only validated HTTP(S) addresses are opened in the default browser.
+    OpenShortcut { url: String },
     /// The wallpaper chosen in the cab's Settings (an id: `wallpapers.ts`), to keep with the settings.
     Wallpaper { id: String },
     /// The truck's information bar beside CabinOS, kept or not, chosen in the cab's Settings (Appearance).
@@ -2505,6 +2514,18 @@ impl From<PageRouteAction> for westplay_shared::RouteAction {
 /// `{"type":"westplay","open":true}`: open (or close) CabinOS on the truck's screen.
 fn westplay_message(open: bool) -> String {
     serde_json::json!({ "type": "westplay", "open": open }).to_string()
+}
+
+fn valid_external_url(url: &str) -> bool {
+    if url.len() > 2048 || url.chars().any(|ch| ch.is_whitespace() || ch.is_control() || ch == '\\') {
+        return false;
+    }
+    let Some((scheme, rest)) = url.split_once("://") else { return false };
+    if !matches!(scheme.to_ascii_lowercase().as_str(), "http" | "https") {
+        return false;
+    }
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+    !authority.is_empty() && !authority.contains('@') && authority.contains('.')
 }
 
 fn parse_page_message(message: &str) -> Option<PageMessage> {

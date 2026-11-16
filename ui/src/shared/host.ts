@@ -187,6 +187,8 @@ export type HostMessage =
   | { type: 'routeNext'; next: number }
   /** Open (or close) WestPlay on the truck's screen: the companion window's switch. */
   | { type: 'westplay'; open: boolean }
+  /** Open a validated per-truck web shortcut in the player's default browser. */
+  | { type: 'openShortcut'; url: string }
   /** The game's weather (`null` when it can't be read: no game, or a game version whose weather the host
    * doesn't know). */
   | { type: 'weather'; weather: GameWeather | null }

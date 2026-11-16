@@ -4,8 +4,7 @@ use windows::Win32::UI::Shell::ShellExecuteW;
 use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
 use windows::core::{HSTRING, PCWSTR, w};
 
-/// Opens `url` in the player's default browser. Only for addresses WestPlay itself names (each of the app's
-/// commands opens one fixed page), never one a page asks for.
+/// Opens `url` in the player's default browser. Callers must validate untrusted addresses as HTTP(S) first.
 pub fn open(url: &str) {
     let address = HSTRING::from(url);
     // SAFETY: the operation and the address are null-terminated wide strings that outlive the call; the

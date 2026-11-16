@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchesVehicle, profileForVehicle, type TruckProfile, type VehicleIdentity } from '../shared/profiles'
+import { isProfileShortcut, matchesVehicle, profileForVehicle, type TruckProfile, type VehicleIdentity } from '../shared/profiles'
 
 const truck = (overrides: Partial<VehicleIdentity> = {}): VehicleIdentity => ({
   modelId: 'vehicle.scania.s_2016',
@@ -43,5 +43,15 @@ describe('truck profile matching', () => {
     expect(profileForVehicle([profile('default', null), first], truck())).toEqual(first)
     expect(profileForVehicle([first, second], truck())).toBeNull()
     expect(profileForVehicle([profile('default', null)], truck())).toBeNull()
+  })
+})
+
+
+describe('per-truck web shortcuts', () => {
+  it('accepts normal HTTP(S) links and rejects dangerous schemes or credentials', () => {
+    expect(isProfileShortcut({ id: 'docs', name: 'Docs', url: 'https://example.com/help' })).toBe(true)
+    expect(isProfileShortcut({ id: 'local', name: 'Local', url: 'http://localhost.example:3000' })).toBe(true)
+    expect(isProfileShortcut({ id: 'bad', name: 'Bad', url: 'javascript:alert(1)' })).toBe(false)
+    expect(isProfileShortcut({ id: 'bad', name: 'Bad', url: 'https://user@example.com' })).toBe(false)
   })
 })

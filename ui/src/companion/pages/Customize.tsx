@@ -260,7 +260,7 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
     defaultIcons: 'Iconos predeterminados',
     savedAppearance: 'Configuración del camión guardada.',
     applications: 'Aplicaciones del camión', layout: 'Columnas de inicio', automatic: 'Automático',
-    shortcuts: 'Accesos directos web', shortcutName: 'Nombre', shortcutUrl: 'Dirección HTTPS', addShortcut: 'Agregar acceso',
+    shortcuts: 'Accesos directos web', shortcutName: 'Nombre', shortcutUrl: 'Dirección HTTP(S)', addShortcut: 'Agregar acceso',
     moveUp: 'Subir', moveDown: 'Bajar',
   } : {
     title: 'Trucks and profiles',
@@ -293,7 +293,7 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
     defaultIcons: 'Default icons',
     savedAppearance: 'Truck configuration saved.',
     applications: 'Truck applications', layout: 'Home columns', automatic: 'Automatic',
-    shortcuts: 'Web shortcuts', shortcutName: 'Name', shortcutUrl: 'HTTPS address', addShortcut: 'Add shortcut',
+    shortcuts: 'Web shortcuts', shortcutName: 'Name', shortcutUrl: 'HTTP(S) address', addShortcut: 'Add shortcut',
     moveUp: 'Move up', moveDown: 'Move down',
   }
 
@@ -498,7 +498,7 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
                         <span>{PROFILE_APP_NAMES[app]}</span>
                         <button type="button" disabled={busy || index === 0} aria-label={labels.moveUp} onClick={() => setAppsDraft((current) => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next })}>↑</button>
                         <button type="button" disabled={busy || index === appsDraft.length - 1} aria-label={labels.moveDown} onClick={() => setAppsDraft((current) => { const next = [...current]; [next[index + 1], next[index]] = [next[index], next[index + 1]]; return next })}>↓</button>
-                        <button type="button" disabled={busy} aria-label={PROFILE_APP_NAMES[app]} onClick={() => setAppsDraft((current) => current.filter((item) => item !== app))}>×</button>
+                        <button type="button" disabled={busy || appsDraft.length <= 1} aria-label={PROFILE_APP_NAMES[app]} onClick={() => setAppsDraft((current) => current.filter((item) => item !== app))}>×</button>
                       </div>
                     ))}
                     <div className="cz-profile-app-add">

@@ -1,6 +1,5 @@
 import { type PointerEvent as ReactPointerEvent, useLayoutEffect, useRef, useState } from 'react'
-import { invoke } from '@tauri-apps/api/core'
-import { isInHost } from '../../shared/host'
+import { isInHost, postToHost } from '../../shared/host'
 import { isProfileShortcut } from '../../shared/profiles'
 import { useAppIcon } from '../state/hooks'
 import { type AppId, APPS, RELEASED_APP_IDS } from '../state/apps'
@@ -242,7 +241,7 @@ function HomeShortcuts({ shortcuts }: { shortcuts: { id: string; name: string; u
     <nav className="home-shortcuts" aria-label="Accesos directos">
       {shortcuts.map((shortcut) => (
         <button key={shortcut.id} type="button" title={shortcut.url} onClick={() => {
-          if (isInHost()) void invoke('open_profile_shortcut', { url: shortcut.url }).catch((error) => console.error('CabinOS shortcut failed', error))
+          if (isInHost()) postToHost({ type: 'openShortcut', url: shortcut.url })
           else window.open(shortcut.url, '_blank', 'noopener,noreferrer')
         }}>
           <span aria-hidden>↗</span>{shortcut.name}
