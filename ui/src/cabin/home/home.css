@@ -114,3 +114,33 @@
   border-radius: 10px;
   font-size: calc(19px * var(--text-scale, 1));
 }
+
+
+/* Per-truck web shortcuts: compact chips along the lower edge, separate from the app grid and page dots. */
+.home-shortcuts {
+  position: absolute;
+  left: 18px;
+  bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: calc(100% - 36px);
+  z-index: 2;
+}
+.home-shortcuts button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 5px 12px;
+  border-radius: 18px;
+  color: var(--text);
+  background: var(--chip);
+  backdrop-filter: blur(16px) saturate(150%);
+  font-size: 16px;
+  font-weight: 600;
+}
+.home-shortcuts button span {
+  color: var(--accent, #35d9ff);
+  font-size: 18px;
+}

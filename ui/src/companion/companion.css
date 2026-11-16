@@ -1080,3 +1080,11 @@ button {
   font: inherit;
   font-size: 12.5px;
 }
+
+
+.cz-profile-apps, .cz-profile-shortcuts { display: grid; gap: 7px; margin-top: 10px; }
+.cz-profile-app-row, .cz-profile-shortcut-row { display: flex; align-items: center; gap: 8px; min-height: 32px; }
+.cz-profile-app-row span, .cz-profile-shortcut-row span { flex: 1; }
+.cz-profile-app-row button, .cz-profile-shortcut-row button { min-width: 28px; min-height: 28px; border-radius: 8px; background: var(--ob-card, rgba(255,255,255,.08)); }
+.cz-profile-app-row button:disabled { opacity: .3; }
+.cz-profile-app-add select, .cz-profile-shortcuts input { width: 100%; }

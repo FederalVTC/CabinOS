@@ -1,8 +1,11 @@
 import { type PointerEvent as ReactPointerEvent, useLayoutEffect, useRef, useState } from 'react'
+import { invoke } from '@tauri-apps/api/core'
+import { isInHost } from '../../shared/host'
+import { isProfileShortcut } from '../../shared/profiles'
 import { useAppIcon } from '../state/hooks'
 import { type AppId, APPS, RELEASED_APP_IDS } from '../state/apps'
 import { useLaunchStyle } from '../state/launch'
-import { go, useCabin } from '../state/store'
+import { go, useCabin, useLive } from '../state/store'
 import { useText } from '../state/text'
 import { textScale } from '../state/textSize'
 import { DRAG_FROM, releaseSpeed } from '../shell/dragScroll'
@@ -34,6 +37,13 @@ export function Home() {
   // The labels grow with the player's Text Size, and the cells with them.
   const scale = textScale(useCabin((state) => state.textSize))
   const names = useText().apps
+  const profile = useLive((state) => state.profile)
+  const apps = profile && profile.applications.length
+    ? profile.applications.filter((app): app is AppId => RELEASED_APP_IDS.includes(app as AppId))
+    : RELEASED_APP_IDS
+  const columns = Math.max(1, Math.min(size.columns, typeof profile?.layout.homeColumns === 'number' ? profile.layout.homeColumns : size.columns))
+  const shortcuts = profile?.shortcuts.filter(isProfileShortcut) ?? []
+  const appKey = apps.join('|')
   // Each app's label's lines as drawn (a long name takes two): the rows are as tall as their names need.
   const [lines, setLines] = useState<Partial<Record<AppId, number>>>({})
 
@@ -72,7 +82,7 @@ export function Home() {
         const text = label.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
         found[app] = line > 0 ? Math.min(LABEL_LINES, Math.max(1, Math.round(text / line))) : 1
       }
-      setLines((current) => (RELEASED_APP_IDS.every((app) => current[app] === found[app]) ? current : found))
+      setLines((current) => (apps.every((app) => current[app] === found[app]) ? current : found))
     }
     count()
     let active = true
@@ -80,18 +90,18 @@ export function Home() {
     return () => {
       active = false
     }
-  }, [size.columns, size.compact, scale, names])
+  }, [size.columns, size.compact, scale, names, appKey])
 
   const cell = size.compact ? COMPACT_CELL : CELL
   const rows = rowLayout(
     cell,
     scale,
     size.height,
-    size.columns,
+    columns,
     size.rows,
-    RELEASED_APP_IDS.map((app) => lines[app] ?? 1),
+    apps.map((app) => lines[app] ?? 1),
   )
-  const pages = pagesOf(RELEASED_APP_IDS, size.columns * rows.rows)
+  const pages = pagesOf(apps, columns * rows.rows)
   const last = pages.length - 1
   const shown = Math.min(page, last)
 
@@ -196,7 +206,7 @@ export function Home() {
               // the first page fills, not all that fit: seven apps in two rows centred, not at the top of three (owner
               // 2026-10-24: "icons are too close to the top").
               style={{
-                gridTemplateColumns: `repeat(${size.columns}, minmax(0, 1fr))`,
+                gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
                 gridTemplateRows: rows.heights.map((height) => `${height}px`).join(' '),
                 rowGap: rows.gap,
               }}
@@ -208,6 +218,7 @@ export function Home() {
           ))}
         </div>
       </div>
+      {shortcuts.length > 0 && <HomeShortcuts shortcuts={shortcuts} />}
       {pages.length > 1 && (
         <div className="home-dots">
           {pages.map((_, index) => (
@@ -223,6 +234,21 @@ export function Home() {
         </div>
       )}
     </section>
+  )
+}
+
+function HomeShortcuts({ shortcuts }: { shortcuts: { id: string; name: string; url: string }[] }) {
+  return (
+    <nav className="home-shortcuts" aria-label="Accesos directos">
+      {shortcuts.map((shortcut) => (
+        <button key={shortcut.id} type="button" title={shortcut.url} onClick={() => {
+          if (isInHost()) void invoke('open_profile_shortcut', { url: shortcut.url }).catch((error) => console.error('CabinOS shortcut failed', error))
+          else window.open(shortcut.url, '_blank', 'noopener,noreferrer')
+        }}>
+          <span aria-hidden>↗</span>{shortcut.name}
+        </button>
+      ))}
+    </nav>
   )
 }
 

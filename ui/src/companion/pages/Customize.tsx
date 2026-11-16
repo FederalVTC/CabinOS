@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { BUILT_IN_WALLPAPERS, customWallpaper, type Wallpaper } from '../../cabin/wallpapers'
 import type { IconSet, IconStyle } from '../../shared/customize'
+import { RELEASED_APP_IDS, type AppId } from '../../cabin/state/apps'
+import { isProfileShortcut, type ProfileShortcut } from '../../shared/profiles'
 import { type AppIconRole, appIcon } from '../../shared/icons'
 import {
   type Added,
@@ -22,6 +24,11 @@ import { matchesVehicle, profilesAssign, profilesCreate, profilesDelete, profile
 import type { CompanionWords } from './words'
 
 const STYLES: IconStyle[] = ['auto', 'light', 'dark']
+const PROFILE_APP_NAMES: Record<AppId, string> = {
+  maps: 'Maps', music: 'Music', spotify: 'Spotify', youtube: 'YouTube',
+  youtubeMusic: 'YouTube Music', player: 'Player', safari: 'Browser',
+  phone: 'Phone', messages: 'Messages', calendar: 'Calendar', weather: 'Weather', settings: 'Settings',
+}
 
 /** What's being added: wallpapers (pictures or a folder of them), or an icon set (a folder or a .zip). */
 type Adding = 'wallpapers' | 'wallpaperFolder' | 'folder' | 'zip'
@@ -211,6 +218,11 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
   const [editName, setEditName] = useState('')
   const [configuring, setConfiguring] = useState<string | null>(null)
   const [appearanceDraft, setAppearanceDraft] = useState<TruckProfile['appearance'] | null>(null)
+  const [appsDraft, setAppsDraft] = useState<AppId[]>([])
+  const [columnsDraft, setColumnsDraft] = useState<number | null>(null)
+  const [shortcutsDraft, setShortcutsDraft] = useState<ProfileShortcut[]>([])
+  const [shortcutName, setShortcutName] = useState('')
+  const [shortcutUrl, setShortcutUrl] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const truck = status?.game === 'ets2' && status.gameConnected && status.truck?.identityConfident
@@ -247,6 +259,9 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
     inheritWallpaper: 'Usar fondo general',
     defaultIcons: 'Iconos predeterminados',
     savedAppearance: 'Configuración del camión guardada.',
+    applications: 'Aplicaciones del camión', layout: 'Columnas de inicio', automatic: 'Automático',
+    shortcuts: 'Accesos directos web', shortcutName: 'Nombre', shortcutUrl: 'Dirección HTTPS', addShortcut: 'Agregar acceso',
+    moveUp: 'Subir', moveDown: 'Bajar',
   } : {
     title: 'Trucks and profiles',
     sub: 'Save an independent configuration for each truck.',
@@ -276,7 +291,10 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
     iconStyle: 'Icon style',
     inheritWallpaper: 'Use global wallpaper',
     defaultIcons: 'Default icons',
-    savedAppearance: 'Truck appearance saved.',
+    savedAppearance: 'Truck configuration saved.',
+    applications: 'Truck applications', layout: 'Home columns', automatic: 'Automatic',
+    shortcuts: 'Web shortcuts', shortcutName: 'Name', shortcutUrl: 'HTTPS address', addShortcut: 'Add shortcut',
+    moveUp: 'Move up', moveDown: 'Move down',
   }
 
   const refresh = async () => {
@@ -350,12 +368,15 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
     }
   }
 
-  const saveAppearance = async (profile: TruckProfile) => {
+  const saveConfiguration = async (profile: TruckProfile) => {
     if (!appearanceDraft || busy) return
     setBusy(true)
     setError(null)
     try {
-      await profilesUpdate({ ...profile, appearance: appearanceDraft })
+      const layout = { ...profile.layout }
+      if (columnsDraft === null) delete layout.homeColumns
+      else layout.homeColumns = columnsDraft
+      await profilesUpdate({ ...profile, appearance: appearanceDraft, applications: appsDraft, shortcuts: shortcutsDraft, layout })
       setConfiguring(null)
       setAppearanceDraft(null)
       await refresh()
@@ -428,6 +449,11 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
                       <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => {
                         setConfiguring(configuring === profile.id ? null : profile.id)
                         setAppearanceDraft({ ...profile.appearance })
+                        setAppsDraft(profile.applications.length ? profile.applications.filter((app): app is AppId => RELEASED_APP_IDS.includes(app as AppId)) : [...RELEASED_APP_IDS])
+                        setColumnsDraft(typeof profile.layout.homeColumns === 'number' ? profile.layout.homeColumns : null)
+                        setShortcutsDraft(profile.shortcuts.filter(isProfileShortcut))
+                        setShortcutName('')
+                        setShortcutUrl('')
                       }}>{labels.configure}</button>
                     )}
                     {profile.id !== 'default' && (
@@ -460,9 +486,48 @@ function TruckProfiles({ status, wallpapers, iconSets }: {
                       <option value="auto">Auto</option><option value="dark">Oscuro / Dark</option><option value="light">Claro / Light</option>
                     </select>
                   </label>
+                  <label>{labels.layout}
+                    <select value={columnsDraft === null ? 'auto' : String(columnsDraft)} onChange={(event) => setColumnsDraft(event.target.value === 'auto' ? null : Number(event.target.value))}>
+                      <option value="auto">{labels.automatic}</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option>
+                    </select>
+                  </label>
+                  <div className="cz-profile-apps">
+                    <b>{labels.applications}</b>
+                    {appsDraft.map((app, index) => (
+                      <div className="cz-profile-app-row" key={app}>
+                        <span>{PROFILE_APP_NAMES[app]}</span>
+                        <button type="button" disabled={busy || index === 0} aria-label={labels.moveUp} onClick={() => setAppsDraft((current) => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next })}>↑</button>
+                        <button type="button" disabled={busy || index === appsDraft.length - 1} aria-label={labels.moveDown} onClick={() => setAppsDraft((current) => { const next = [...current]; [next[index + 1], next[index]] = [next[index], next[index + 1]]; return next })}>↓</button>
+                        <button type="button" disabled={busy} aria-label={PROFILE_APP_NAMES[app]} onClick={() => setAppsDraft((current) => current.filter((item) => item !== app))}>×</button>
+                      </div>
+                    ))}
+                    <div className="cz-profile-app-add">
+                      <select value="" onChange={(event) => { const app = event.target.value as AppId; if (app && !appsDraft.includes(app)) setAppsDraft((current) => [...current, app]) }}>
+                        <option value="">+ {labels.applications}</option>
+                        {RELEASED_APP_IDS.filter((app) => !appsDraft.includes(app)).map((app) => <option key={app} value={app}>{PROFILE_APP_NAMES[app]}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="cz-profile-shortcuts">
+                    <b>{labels.shortcuts}</b>
+                    {shortcutsDraft.map((shortcut) => (
+                      <div className="cz-profile-shortcut-row" key={shortcut.id}>
+                        <span>{shortcut.name}</span>
+                        <button type="button" disabled={busy} onClick={() => setShortcutsDraft((current) => current.filter((item) => item.id !== shortcut.id))}>×</button>
+                      </div>
+                    ))}
+                    <input value={shortcutName} maxLength={40} placeholder={labels.shortcutName} onChange={(event) => setShortcutName(event.target.value)} />
+                    <input value={shortcutUrl} maxLength={2048} placeholder="https://example.com" onChange={(event) => setShortcutUrl(event.target.value)} />
+                    <Button small disabled={!shortcutName.trim() || !/^https?:\/\/[^\s/?#@]+(?:[/?#][^\s]*)?$/i.test(shortcutUrl) || shortcutsDraft.length >= 20} onClick={() => {
+                      const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID().replaceAll('-', '') : 'shortcut-' + Date.now()
+                      setShortcutsDraft((current) => [...current, { id, name: shortcutName.trim(), url: shortcutUrl.trim() }])
+                      setShortcutName('')
+                      setShortcutUrl('')
+                    }}>{labels.addShortcut}</Button>
+                  </div>
                   <div className="cz-profile-config-actions">
-                    <Button small busy={busy} onClick={() => void saveAppearance(profile)}>{labels.save}</Button>
-                    <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => { setConfiguring(null); setAppearanceDraft(null) }}>{labels.cancel}</button>
+                    <Button small busy={busy} onClick={() => void saveConfiguration(profile)}>{labels.save}</Button>
+                    <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => { setConfiguring(null); setAppearanceDraft(null); setAppsDraft([]); setShortcutsDraft([]) }}>{labels.cancel}</button>
                   </div>
                 </div>
               )}

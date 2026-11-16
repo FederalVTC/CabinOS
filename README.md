@@ -11,8 +11,8 @@ CabinOS es un proyecto independiente para Windows orientado exclusivamente a **E
 
 - Aplicación de escritorio propia, con identidad y diseño CabinOS.
 - Integración nativa con ETS2 mediante el plugin y el puente de telemetría.
-- Perfiles independientes por camión, con configuración, aplicaciones, accesos directos y apariencia.
-- Administrador de aplicaciones y accesos directos, con asignación global o por perfil.
+- Perfiles independientes por camión, con selección y orden de aplicaciones, accesos directos web HTTPS y apariencia propia.
+- Personalización por perfil de las aplicaciones visibles, el orden de inicio y accesos directos web seguros.
 - Mapas locales compatibles con los archivos del juego y, cuando la base técnica lo permita, mapas modificados como ProMods.
 - Personalización de la pantalla de cabina, iconos, fondos y distribución.
 - Actualizaciones manuales que preserven perfiles y preferencias.
