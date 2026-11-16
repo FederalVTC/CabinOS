@@ -37,6 +37,8 @@ fn main() {
         settings: Arc::new(SharedSettings::default()),
         // Nothing kept: the standalone host has no settings file.
         on_settings: Box::new(|_| {}),
+        // The standalone development host has no companion profile store.
+        on_profile: Box::new(|_| None),
         customize_changed: Arc::default(),
         // No map for the standalone host: the app's setup chooses the game.
         game: Arc::default(),
