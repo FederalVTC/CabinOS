@@ -1,4 +1,4 @@
-//! WestPlay app: the companion window (Tauri) plus the in-cabin UI host on its own thread.
+//! CabinOS app: the companion window (Tauri) plus the in-cabin UI host on its own thread.
 
 // No console window in release builds.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
@@ -28,8 +28,8 @@ struct Host {
     thread: Option<JoinHandle<()>>,
 }
 
-/// Requests from the companion window to open or close WestPlay on the truck's screen (the cabin page owns
-/// that state, which it also changes itself: its sidebar's truck button, its WestPlay button, the interaction
+/// Requests from the companion window to open or close CabinOS on the truck's screen (the cabin page owns
+/// that state, which it also changes itself: its sidebar's truck button, its CabinOS button, the interaction
 /// key and W; the host reports it back in its status).
 struct WestplayOpen(Arc<OpenRequest>);
 
@@ -128,7 +128,7 @@ fn apple_music_check(accounts: State<Accounts>) {
     accounts.0.apple_music.request(AccountAction::Check);
 }
 
-/// The maker's Kreosus page, where players support WestPlay's development.
+/// The maker's Kreosus page, where players support CabinOS's development.
 const SUPPORT_PAGE: &str = "https://github.com/FederalVTC/CabinOS";
 
 /// Opens the support page (Support me) in the player's browser. The address is fixed here, so the companion
@@ -138,7 +138,7 @@ fn open_support_page() {
     westplay_host::browser::open(SUPPORT_PAGE);
 }
 
-/// WestPlay's pages elsewhere, at the foot of the companion's list.
+/// CabinOS's pages elsewhere, at the foot of the companion's list.
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum Social {
@@ -146,7 +146,7 @@ enum Social {
     Github,
 }
 
-/// Opens one of WestPlay's pages elsewhere (its YouTube channel, its Discord, its Patreon) in the player's browser.
+/// Opens one of CabinOS's pages elsewhere (its YouTube channel, its Discord, its Patreon) in the player's browser.
 /// The addresses are fixed here, as the support page's.
 #[tauri::command]
 fn open_social(site: Social) {
@@ -156,7 +156,7 @@ fn open_social(site: Social) {
     });
 }
 
-/// Where this run's `app.log` is (the About page): Documents\WestPlay\logs, or WestPlay's own data folder where
+/// Where this run's `app.log` is (the About page): Documents\CabinOS\logs, or CabinOS's own data folder where
 /// Documents refused it; `None` if it couldn't be made.
 #[tauri::command]
 fn app_log_place() -> Option<String> {
@@ -191,7 +191,7 @@ fn main() {
     if let Some(code) = westplay_setup::plugin::run_as_administrator_copy(&args) {
         std::process::exit(code);
     }
-    // One WestPlay at a time: a second only says so (held until the app ends). Before the log starts: a second
+    // One CabinOS at a time: a second only says so (held until the app ends). Before the log starts: a second
     // making the log anew would empty the running one's.
     let Some(_instance) = westplay_host::Instance::claim() else {
         westplay_host::tell_already_running();
@@ -291,7 +291,7 @@ fn main() {
             Ok(())
         })
         .build(tauri::generate_context!())
-        .expect("failed to build the WestPlay app");
+        .expect("failed to build the CabinOS app");
 
     app.run(|app, event| {
         if let RunEvent::Exit = event {
@@ -350,7 +350,7 @@ fn start_host(
         "maps: {}",
         map_builder
             .as_ref()
-            .map_or("no map builder: built in WestPlay itself".into(), |file| format!("built by {}", file.display()))
+            .map_or("no map builder: built in CabinOS itself".into(), |file| format!("built by {}", file.display()))
     );
     let stop = Arc::new(AtomicBool::new(false));
 
@@ -425,8 +425,8 @@ fn start_host(
                 Ended::Failed(error) => error,
             };
             // In the log too: shown only, a player's said nothing of it (2026-11-11).
-            westplay_host::log!("WestPlay engine stopped: {error}");
-            let status = Status { error: Some(format!("WestPlay engine stopped: {error}")), ..Default::default() };
+            westplay_host::log!("CabinOS engine stopped: {error}");
+            let status = Status { error: Some(format!("CabinOS engine stopped: {error}")), ..Default::default() };
             let _ = events.emit("host-status", &status);
             return;
         }
