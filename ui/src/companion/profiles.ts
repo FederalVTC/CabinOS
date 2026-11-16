@@ -51,3 +51,22 @@ export function vehicleIdentity(truck: {
     fingerprint: truck.fingerprint,
   }
 }
+
+/** A vehicle is matched by its unique local fingerprint whenever both sides have one. */
+export function matchesVehicle(profile: TruckProfile, vehicle: VehicleIdentity): boolean {
+  const assigned = profile.vehicle
+  if (!assigned) return false
+  if (vehicle.fingerprint && assigned.fingerprint) {
+    return vehicle.fingerprint === assigned.fingerprint
+  }
+  return vehicle.modelId === assigned.modelId && vehicle.brandId === assigned.brandId
+}
+
+/** Only return an automatic match when exactly one custom profile identifies this truck. */
+export function profileForVehicle(
+  profiles: TruckProfile[],
+  vehicle: VehicleIdentity,
+): TruckProfile | null {
+  const matches = profiles.filter((profile) => profile.id !== 'default' && matchesVehicle(profile, vehicle))
+  return matches.length === 1 ? matches[0] : null
+}
