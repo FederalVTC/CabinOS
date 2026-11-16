@@ -3,7 +3,6 @@ import { appVersion } from '../bridge'
 import { Button, Group, Panel, Row } from '../room/parts'
 import { banner } from '../room/room'
 import { GLOW, useScreenAt } from '../room/screen'
-import { lookForUpdate } from '../update'
 import { GAME_NAMES, type GameInfo } from '../setup'
 import { appLogPlace, type HostStatus } from '../useHostStatus'
 import { type PageProps, screenState } from './page'
@@ -22,17 +21,11 @@ export function About({ status, setup, cw, update, showUpdate }: PageProps) {
   const w = cw.about
   const [version, setVersion] = useState('')
   const [copied, setCopied] = useState(false)
-  // Whether there's an update: the one found, or none after looking again.
-  const [looked, setLooked] = useState(false)
   // Where this run's app.log is; null if it couldn't be made anywhere.
   const [appLog, setAppLog] = useState<string | null>(null)
   useEffect(() => {
     appVersion().then(setVersion, () => setVersion(''))
     appLogPlace().then(setAppLog, () => setAppLog(null))
-    lookForUpdate().then(
-      () => setLooked(true),
-      () => setLooked(true),
-    )
   }, [])
   useEffect(() => {
     if (!copied) return
@@ -92,7 +85,7 @@ export function About({ status, setup, cw, update, showUpdate }: PageProps) {
 /** The report to copy: plain facts, in English (for whoever helps), nothing of the player's accounts. */
 function report(version: string, status: HostStatus | null, games: GameInfo[], appLog: string | null): string {
   return [
-    `WestPlay ${version}`,
+    `CabinOS ${version}`,
     ...(games.length
       ? games.map((game) => `Game: ${GAME_NAMES[game.kind]} ${game.version ?? 'unknown'} (${game.dir})`)
       : ['Game: none set up']),
