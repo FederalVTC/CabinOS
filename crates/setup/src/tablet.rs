@@ -1,10 +1,10 @@
-//! WestPlay's tablet: a toy whose screen shows WestPlay in trucks with no screen of WestPlay's (owner
+//! CabinOS's tablet: a toy whose screen shows CabinOS in trucks with no screen of CabinOS's (owner
 //! 2026-10-24: "any truck with the tablet accessory"), bought in the truck shop as any toy is, in two places
 //! (owner 2026-10-24, not the console's toy stand: "no truck has place for a tablet there"): Hanging Items
 //! (`toyhang`), fixed where the truck's hanging toys hang from, and a dashboard set of its own (`set_dashbrd`),
 //! standing where a set's toys stand ([`Slot`]).
 //!
-//! Drawn only with the camera in the cab, as the dashboard's screens are: WestPlay's camera system (the host's
+//! Drawn only with the camera in the cab, as the dashboard's screens are: CabinOS's camera system (the host's
 //! camera.rs) takes its screen not being drawn for the camera outside the cab (muffling the music) and the game's
 //! menus up (fading it out), and a tablet drawn from outside (through the windows, behind the service screen)
 //! kept the music as it was (owner 2026-10-24). So both are defined as the game's parts with a view of their own
@@ -38,23 +38,23 @@ use westplay_shared::SCREEN_HEIGHT;
 const SOURCE_PMG: &[u8] = include_bytes!("../../../assets/tablet/ipad.pmg");
 const SOURCE_PMD: &[u8] = include_bytes!("../../../assets/tablet/Kedi739.pmd");
 const SOURCE_DDS: &[u8] = include_bytes!("../../../assets/tablet/ipad.dds");
-/// The shop's icon: WestPlay's own (256 x 256).
+/// The shop's icon: CabinOS's own (256 x 256).
 const ICON_PNG: &[u8] = include_bytes!("../../../app/icons/128x128@2x.png");
 
 /// Where the tablet's files live in the game's file system.
-const DIR: &str = "vehicle/truck/upgrade/westplay_tablet";
-/// Its icon (`icon: "westplay_tablet"`: the shop's icons are under `ICON_DIR`).
+const DIR: &str = "vehicle/truck/upgrade/cabin_tablet";
+/// Its icon (`icon: "cabin_tablet"`: the shop's icons are under `ICON_DIR`).
 const ICON_DIR: &str = "material/ui/accessory";
-const NAME: &str = "westplay_tablet";
+const NAME: &str = "cabin_tablet";
 /// The hanging one's model.
-const HANGING: &str = "westplay_tablet_hang";
+const HANGING: &str = "cabin_tablet_hang";
 /// The one on a dashboard set's toy spot (a table's red slots: owner 2026-10-26).
-const ON_SLOT: &str = "westplay_tablet_slot";
+const ON_SLOT: &str = "cabin_tablet_slot";
 /// Its hookup, beside the game's (`def/vehicle/addon_hookup_storage.sii` asks mods for a file of their own so named).
-const HOOKUPS: &str = "def/vehicle/addon_hookup_storage.westplay.sii";
+const HOOKUPS: &str = "def/vehicle/addon_hookup_storage.cabinos.sii";
 /// Its accessory's name, the first of its unit name's parts: each a token, 12 characters at the most (the game
-/// refused `westplay_tablet.scania.s_2016.toystand`: "the unit name ... is in wrong format", 2026-10-24).
-const UNIT: &str = "wp_tablet";
+/// refused `cabin_tablet.scania.s_2016.toystand`: "the unit name ... is in wrong format", 2026-10-24).
+const UNIT: &str = "cabin_tablet";
 
 /// Where a truck takes the tablet.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -227,7 +227,7 @@ pub fn files(
     Ok(files)
 }
 
-/// The hanging tablet's model for a hanging point pitched `tenths` of a degree: `westplay_tablet_hang`, or with
+/// The hanging tablet's model for a hanging point pitched `tenths` of a degree: `cabin_tablet_hang`, or with
 /// the pitch (`_p80`: 8 degrees up, `_m34`: 3.4 down).
 fn hanging_model(tenths: i32) -> String {
     match tenths {
@@ -282,7 +282,7 @@ fn pitch_of([w, x, y, z]: [f32; 4]) -> f32 {
     up.clamp(-1.0, 1.0).asin().to_degrees()
 }
 
-/// Whether WestPlay draws on `truck`'s own screen (a mod vehicle's: [`crate::game_mod::mod_screen_trucks`]): no
+/// Whether CabinOS draws on `truck`'s own screen (a mod vehicle's: [`crate::game_mod::mod_screen_trucks`]): no
 /// tablet there.
 fn own_screen(truck: &str) -> bool {
     crate::game_mod::mod_screen_trucks().any(|own| own == truck)
@@ -295,7 +295,7 @@ fn definition_path(spot: &Spot) -> String {
 
 /// The trucks' slots for the tablet in `files` (the game, its DLCs, a mod), sorted: each truck's hanging items
 /// and dashboard sets it has, of those whose name the tablet's own can be made of (each part a token: a mod's
-/// folder named otherwise is no truck the game has). Not the vehicles WestPlay draws on the own screen of
+/// folder named otherwise is no truck the game has). Not the vehicles CabinOS draws on the own screen of
 /// (`game_mod::mod_screen_trucks`: Oyuncuyusbis' coaches; owner 2026-10-24: "Tablets should NOT appear in buses").
 pub fn trucks(files: &GameFiles) -> Result<Vec<Spot>, String> {
     let mut spots = Vec::new();
@@ -346,7 +346,7 @@ pub fn mod_trucks_and_marks(mods: &[PathBuf]) -> (Vec<Spot>, Vec<u64>) {
     (spots, apart_marks(&apart))
 }
 
-/// The marks of the vehicles WestPlay's tablet shows nothing in (`westplay_shared::tablet_apart_file`): those of
+/// The marks of the vehicles CabinOS's tablet shows nothing in (`westplay_shared::tablet_apart_file`): those of
 /// [`APART_VEHICLES`], and every vehicle of the mods set apart (`apart`, their ids), by their ids' hashes: the
 /// tablet, a hookup on any vehicle's dashboard set too, can't be kept out of them, so the plugin keeps it blank.
 fn apart_marks(apart: &BTreeSet<String>) -> Vec<u64> {
@@ -356,7 +356,7 @@ fn apart_marks(apart: &BTreeSet<String>) -> Vec<u64> {
     marks.into_iter().collect()
 }
 
-/// Writes `marks` ([`mod_trucks_and_marks`]) into WestPlay's own folder `dir`, beside the game `kind`'s mod, for the
+/// Writes `marks` ([`mod_trucks_and_marks`]) into CabinOS's own folder `dir`, beside the game `kind`'s mod, for the
 /// plugin: written beside it first, then moved over it, so the plugin never reads half a file.
 pub fn write_apart(marks: &[u64], dir: &Path, kind: crate::game::Kind) -> std::io::Result<()> {
     let file = westplay_shared::tablet_apart_file(kind.sdk_id());
@@ -399,9 +399,9 @@ const APART_VEHICLES: &[u64] = &[0xb162_96d6_78c2_d0a8, 0x1cb7_e722_157f_00ff, 0
 /// The game's buses (the Coaches DLC's, 2026-11-12, `def/vehicle/bus`): no tablet in a bus (owner 2026-10-24:
 /// "Tablets should NOT appear in buses"). Their hanging items are no truck's (the tablet's are listed from
 /// `def/vehicle/truck`), but their dashboard sets take its hookup as any set does: the plugin keeps it blank in
-/// them. The Scania Touring and the MAN Lion's Coach have WestPlay on their own screens. Not the Volvo 9700: its own
+/// them. The Scania Touring and the MAN Lion's Coach have CabinOS on their own screens. Not the Volvo 9700: its own
 /// screen stays the game's (no CarPlay in the real one, owner 2026-11-12), and the tablet fitted in its dashboard set
-/// shows WestPlay (owner 2026-11-13: "It has the tablet on dashboard items slot ALREADY").
+/// shows CabinOS (owner 2026-11-13: "It has the tablet on dashboard items slot ALREADY").
 const BUSES: &[&str] = &["scania.touring_23", "man.lions_24"];
 
 /// Whether the vehicle `truck` (its id) is one of [`APART_VEHICLES`] (or any of its parts is).
@@ -429,7 +429,7 @@ pub fn trucks_in_mod(path: &Path) -> Vec<Spot> {
 fn accessory(spot: &Spot, model: &str) -> String {
     let (truck, slot) = (&spot.truck, spot.slot.folder());
     format!(
-        "SiiNunit\n{{\naccessory_addon_data : {UNIT}.{truck}.{slot}\n{{\n\tname: \"WestPlay tablet\"\n\tprice: 1\n\tunlock: 0\n\ticon: \"{NAME}\"\n\tpart_type: aftermarket\n\n\tinterior_model: \"/{DIR}/{model}.pmd\"\n}}\n}}\n"
+        "SiiNunit\n{{\naccessory_addon_data : {UNIT}.{truck}.{slot}\n{{\n\tname: \"CabinOS tablet\"\n\tprice: 1\n\tunlock: 0\n\ticon: \"{NAME}\"\n\tpart_type: aftermarket\n\n\tinterior_model: \"/{DIR}/{model}.pmd\"\n}}\n}}\n"
     )
 }
 
@@ -443,7 +443,7 @@ fn hookup() -> String {
 {{
 accessory_hookup_int_data : {UNIT}.addon_hookup
 {{
-	name: \"WestPlay tablet\"
+	name: \"CabinOS tablet\"
 	price: 1
 	unlock: 0
 	icon: \"{NAME}\"
@@ -467,7 +467,7 @@ fn body_material() -> String {
 }
 
 /// Its screen: the game's own GPS screen material (`/automat/d8/d8187d0c1f48c659.mat`, the Scania's too: lit
-/// at night as a screen is), on WestPlay's texture; by day at 1500 rather than the trucks' 2000 (owner 2026-11-11:
+/// at night as a screen is), on CabinOS's texture; by day at 1500 rather than the trucks' 2000 (owner 2026-11-11:
 /// "unacceptably bright"), 10 at night as theirs.
 fn screen_material(texture: &str) -> String {
     format!(
@@ -828,7 +828,7 @@ fn descriptor() -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-/// The shop's icon: WestPlay's, as a texture the mod's screens are made of (`game_mod::screen_dds`).
+/// The shop's icon: CabinOS's, as a texture the mod's screens are made of (`game_mod::screen_dds`).
 fn icon() -> Result<Vec<u8>, String> {
     let mut reader =
         png::Decoder::new(std::io::Cursor::new(ICON_PNG)).read_info().map_err(|error| error.to_string())?;
@@ -1076,8 +1076,8 @@ mod tests {
             let end = pmd[at..].iter().position(|&b| b == 0).unwrap();
             String::from_utf8(pmd[at..at + end].to_vec()).unwrap()
         };
-        assert_eq!(material(0), "/vehicle/truck/upgrade/westplay_tablet/body.mat");
-        assert_eq!(material(1), "/vehicle/truck/upgrade/westplay_tablet/screen.mat");
+        assert_eq!(material(0), "/vehicle/truck/upgrade/cabin_tablet/body.mat");
+        assert_eq!(material(1), "/vehicle/truck/upgrade/cabin_tablet/screen.mat");
         assert_eq!(pmd.len(), 0x6c + 8 + word(&pmd, 8).unwrap() as usize);
     }
 
@@ -1091,7 +1091,7 @@ mod tests {
             "mercedes.actros2014/accessory/toyhang",
             "scania.s_2016/accessory/set_glass",
             "odd.truck/accessory/toystand",
-            // A coach WestPlay draws on the own screen of: no tablet.
+            // A coach CabinOS draws on the own screen of: no tablet.
             "t16shd/accessory/toyhang",
             "t16shd/accessory/set_dashbrd",
         ] {
@@ -1114,31 +1114,31 @@ mod tests {
         assert_eq!(
             defs,
             [
-                "def/vehicle/addon_hookup_storage.westplay.sii",
-                "def/vehicle/truck/daf.xf/accessory/toyhang/westplay_tablet.sii",
-                "def/vehicle/truck/daf.xf/accessory/set_dashbrd/westplay_tablet.sii",
-                "def/vehicle/truck/mercedes.actros2014/accessory/toyhang/westplay_tablet.sii"
+                "def/vehicle/addon_hookup_storage.cabinos.sii",
+                "def/vehicle/truck/daf.xf/accessory/toyhang/cabin_tablet.sii",
+                "def/vehicle/truck/daf.xf/accessory/set_dashbrd/cabin_tablet.sii",
+                "def/vehicle/truck/mercedes.actros2014/accessory/toyhang/cabin_tablet.sii"
             ]
         );
         let text =
             |name: &str| String::from_utf8(files.iter().find(|(path, _)| path.contains(name)).unwrap().1.clone());
         // Both the kind of part the game draws with the camera in the cab only: an interior model, none for outside.
         let hanging = text("daf.xf/accessory/toyhang").unwrap();
-        assert!(hanging.contains("accessory_addon_data : wp_tablet.daf.xf.toyhang"));
+        assert!(hanging.contains("accessory_addon_data : cabin_tablet.daf.xf.toyhang"));
         assert!(
-            hanging.contains("interior_model: \"/vehicle/truck/upgrade/westplay_tablet/westplay_tablet_hang_m50.pmd\"")
+            hanging.contains("interior_model: \"/vehicle/truck/upgrade/cabin_tablet/cabin_tablet_hang_m50.pmd\"")
         );
         let set = text("daf.xf/accessory/set_dashbrd").unwrap();
-        assert!(set.contains("accessory_addon_data : wp_tablet.daf.xf.set_dashbrd"));
-        assert!(set.contains("interior_model: \"/vehicle/truck/upgrade/westplay_tablet/westplay_tablet.pmd\""));
+        assert!(set.contains("accessory_addon_data : cabin_tablet.daf.xf.set_dashbrd"));
+        assert!(set.contains("interior_model: \"/vehicle/truck/upgrade/cabin_tablet/cabin_tablet.pmd\""));
         for def in [&hanging, &set] {
             assert!(!def.contains("exterior_model") && !def.contains("accessory_addon_int_data"), "{def}");
         }
         // On any set's toy spots (a table's red slots), a hookup: its model the one standing as the spot faces.
-        let hookup = text("addon_hookup_storage.westplay.sii").unwrap();
-        assert!(hookup.contains("accessory_hookup_int_data : wp_tablet.addon_hookup"));
+        let hookup = text("addon_hookup_storage.cabinos.sii").unwrap();
+        assert!(hookup.contains("accessory_hookup_int_data : cabin_tablet.addon_hookup"));
         assert!(hookup.contains("suitable_for[]: \"set_dashbrd\""));
-        assert!(hookup.contains("model: \"/vehicle/truck/upgrade/westplay_tablet/westplay_tablet_slot.pmd\""));
+        assert!(hookup.contains("model: \"/vehicle/truck/upgrade/cabin_tablet/cabin_tablet_slot.pmd\""));
         // Every unit name's parts tokens, as the game reads them (12 characters at the most).
         for (path, text) in files.iter().filter(|(path, _)| path.starts_with("def/")) {
             let text = String::from_utf8_lossy(text);
@@ -1147,9 +1147,9 @@ mod tests {
         }
         // Both models, each with its descriptor beside it.
         // The standing one, and a hanging one per pitch: the DAF XF's (5 degrees down), the Actros' (none read).
-        for model in ["westplay_tablet", "westplay_tablet_slot", "westplay_tablet_hang", "westplay_tablet_hang_m50"] {
+        for model in ["cabin_tablet", "cabin_tablet_slot", "cabin_tablet_hang", "cabin_tablet_hang_m50"] {
             for kind in ["pmg", "pmd"] {
-                let path = format!("vehicle/truck/upgrade/westplay_tablet/{model}.{kind}");
+                let path = format!("vehicle/truck/upgrade/cabin_tablet/{model}.{kind}");
                 assert!(files.iter().any(|(file, _)| *file == path), "{path}");
             }
         }
@@ -1160,7 +1160,7 @@ mod tests {
         assert!(lit.contains("luminance_output : 1500.000000") && lit.contains("luminance_night : 10.000000"), "{lit}");
         // The icon: 256 x 256.
         let icon =
-            &files.iter().find(|(path, _)| path.ends_with("westplay_tablet.dds") && path.contains("ui")).unwrap().1;
+            &files.iter().find(|(path, _)| path.ends_with("cabin_tablet.dds") && path.contains("ui")).unwrap().1;
         assert_eq!((word(icon, 3).unwrap(), word(icon, 4).unwrap()), (256, 256));
         let _ = std::fs::remove_dir_all(&root);
     }
@@ -1225,8 +1225,8 @@ mod tests {
         assert!(APART_VEHICLES.iter().all(|mark| marks.contains(mark)));
         assert!(westplay_shared::vehicle_marked(&veiled(&[0x2e, 0x6b, 0x6c, 0x29, 0x32, 0x3e]), &marks));
         assert!(!westplay_shared::vehicle_marked("vehicle.daf.xf", &marks));
-        // The game's buses with WestPlay on their own screens, as the SDK names them or not; their makers' trucks
-        // not, nor the Volvo 9700, whose tablet shows WestPlay.
+        // The game's buses with CabinOS on their own screens, as the SDK names them or not; their makers' trucks
+        // not, nor the Volvo 9700, whose tablet shows CabinOS.
         for id in ["vehicle.scania.touring_23", "man.lions_24"] {
             assert!(westplay_shared::vehicle_marked(id, &marks), "{id}");
         }
@@ -1240,7 +1240,7 @@ mod tests {
             files(&hanging(&[&first, &second, "daf.xf", "setradt531"]), &BTreeMap::new(), "/s.tobj", HEIGHT).unwrap();
         let written: Vec<&String> =
             given.iter().map(|(path, _)| path).filter(|path| path.starts_with("def/vehicle/truck/")).collect();
-        assert_eq!(written, ["def/vehicle/truck/daf.xf/accessory/toyhang/westplay_tablet.sii"]);
+        assert_eq!(written, ["def/vehicle/truck/daf.xf/accessory/toyhang/cabin_tablet.sii"]);
         // Built with them: the game's and the mods', each once; read back from the mod's file.
         let files = GameFiles::new(vec![Mount::Folder(game)]);
         let (bytes, built) = crate::game_mod::build(
