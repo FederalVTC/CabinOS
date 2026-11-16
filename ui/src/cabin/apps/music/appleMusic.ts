@@ -679,7 +679,7 @@ export function useAppleMusicSource(): { source: MediaSource; artwork: string | 
     if (!playback || !track) return null
     return {
       source: {
-        id: 'westplay-apple-music',
+        id: 'cabinos-apple-music',
         service: 'appleMusic',
         title: track.name,
         artist: track.artist,
