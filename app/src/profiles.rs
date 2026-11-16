@@ -446,6 +446,17 @@ mod tests {
     }
 
     #[test]
+    fn old_profile_appearance_files_receive_safe_defaults() {
+        let appearance: ProfileAppearance = serde_json::from_str(
+            r##"{"theme":"electric","wallpaper":null,"accentColor":"#35D9FF"}"##,
+        ).unwrap();
+        assert_eq!(appearance.mode, "auto");
+        assert_eq!(appearance.icon_set, None);
+        assert_eq!(appearance.icon_style, "auto");
+        assert!(validate_appearance(&appearance).is_ok());
+    }
+
+    #[test]
     fn profile_ids_cannot_escape_the_profiles_folder() {
         assert!(valid_id("p-123-456"));
         assert!(!valid_id("../settings"));
