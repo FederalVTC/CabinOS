@@ -34,7 +34,8 @@ interface ShellProps {
  */
 export function Shell({ children, overlay, entering = false }: ShellProps) {
   useLookChanges()
-  usePreparedIcons()
+  const profileIconSet = useLive((state) => state.profile?.appearance.iconSet)
+  usePreparedIcons(profileIconSet)
   const { appearance, wallpaperSrc } = useLook()
   const profile = useScreenProfile()
   const stripId = useOemStrip()
