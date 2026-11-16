@@ -211,7 +211,7 @@ export const useCabin = create<CabinState>()(
     }),
     {
       // The onboarding's demo keeps its own: it never changes the player's.
-      name: IS_DEMO ? 'westplay.cabin.demo' : 'westplay.cabin',
+      name: IS_DEMO ? 'cabinos.cabin.demo' : 'cabinos.cabin',
       // 2: Text Size's steps moved larger (2026-10-24): a step kept from before means another size now, so each
       // player starts on the new default. 3: two smaller steps added below them (the same day): a step kept is the
       // same size two steps further on.
