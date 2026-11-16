@@ -16,6 +16,7 @@ import {
   toEqualizer,
   type TruckInfo,
 } from '../../shared/host'
+import { isTruckProfile, type TruckProfile } from '../../shared/profiles'
 import type { Maneuver, TurnKind } from '../maps/guidance'
 import {
   receiveAnswer as receiveAppleMusicAnswer,
@@ -284,6 +285,8 @@ function isRoute(route: unknown): route is Route {
 export interface LiveState {
   telemetry: Telemetry | null
   truck: TruckInfo | null
+  /** The unique profile selected by the host for this truck; null means global defaults. */
+  profile: TruckProfile | null
   /** The player's job (`null`: none). */
   job: JobInfo | null
   /** The kind of screen the game draws WestPlay on; `null` until it has drawn one. */
@@ -360,6 +363,7 @@ export interface Nearby {
 export const useLive = create<LiveState>()(() => ({
   telemetry: null,
   truck: previewTruck(),
+  profile: null,
   job: null,
   screenLayout: previewLayout(),
   ownedGarages: [],
@@ -447,6 +451,9 @@ function receiveHostMessage(now: () => number): (message: HostMessage) => void {
       }
       case 'truck':
         useLive.setState({ truck: hasTruck(message.data) ? message.data : null })
+        break
+      case 'profile':
+        useLive.setState({ profile: isTruckProfile(message.data) ? message.data : null })
         break
       case 'job':
         useLive.setState({ job: message.data.active ? message.data : null })
@@ -598,7 +605,7 @@ function receiveHostMessage(now: () => number): (message: HostMessage) => void {
         // The game closed: the screen goes off as with the truck's electrics (the kept apps go with it), and
         // the next game's first telemetry powers it on afresh.
         if (!message.running) {
-          useLive.setState({ telemetry: null })
+          useLive.setState({ telemetry: null, truck: null, profile: null })
           useCabin.getState().powerEvent({ type: 'electrics', on: false, at: now() })
         }
         break
