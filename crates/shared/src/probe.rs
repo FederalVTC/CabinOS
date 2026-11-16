@@ -1,4 +1,4 @@
-//! WestPlay's probe (`westplay-probe.exe`, beside the plugin in the game's plugins folder): where the DirectX
+//! CabinOS's probe (`cabinos-probe.exe`, beside the plugin in the game's plugins folder): where the DirectX
 //! functions the plugin hooks are, found in a process of its own.
 //!
 //! The plugin used to make a throwaway D3D11 device and swap chain inside the game to read them from. Tools that
