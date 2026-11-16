@@ -6,30 +6,30 @@ use std::path::{Path, PathBuf};
 
 use crate::game::{Game, Kind};
 
-/// The file, in WestPlay's config folder.
+/// The file, in CabinOS's config folder.
 pub const FILE_NAME: &str = "setup.json";
 
 #[derive(Clone, Debug, Default, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Record {
-    /// The games WestPlay is set up in (their plugin, their mod, their maps), once it is.
+    /// The games CabinOS is set up in (their plugin, their mod, their maps), once it is.
     pub games: Vec<SetUp>,
     /// The onboarding was gone through to its end: the companion opens on its own pages from then on.
     pub finished: bool,
-    /// The record as WestPlay kept it before ATS (one game): read into `games`, never written.
+    /// The record as CabinOS kept it before ATS (one game): read into `games`, never written.
     #[serde(skip_serializing)]
     game: Option<PathBuf>,
     #[serde(skip_serializing)]
     version: Option<String>,
 }
 
-/// A game WestPlay is set up in.
+/// A game CabinOS is set up in.
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SetUp {
     /// The game's folder.
     pub dir: PathBuf,
-    /// The version of WestPlay that put its plugin and mod into that game: another one's (an update since) are
+    /// The version of CabinOS that put its plugin and mod into that game: another one's (an update since) are
     /// put in again.
     pub version: Option<String>,
 }
@@ -73,12 +73,12 @@ impl Record {
         self.games().into_iter().find(|game| game.kind == kind)
     }
 
-    /// The version of WestPlay that set `game` up (`None`: it isn't, or set up before versions were kept).
+    /// The version of CabinOS that set `game` up (`None`: it isn't, or set up before versions were kept).
     pub fn version_of(&self, game: &Game) -> Option<&str> {
         self.games.iter().find(|set_up| set_up.dir == game.dir)?.version.as_deref()
     }
 
-    /// `game` set up by WestPlay `version`: in place of the install of its game set up before (another of the
+    /// `game` set up by CabinOS `version`: in place of the install of its game set up before (another of the
     /// same game's, or itself), the others kept.
     pub fn set_up(&mut self, game: &Game, version: &str) {
         if game.kind != Kind::Ets2 {
