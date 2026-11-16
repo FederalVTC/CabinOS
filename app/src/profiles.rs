@@ -68,7 +68,10 @@ impl TruckProfile {
             name,
             vehicle,
             appearance: ProfileAppearance::default(),
-            applications: Vec::new(),
+            applications: [
+                "maps", "music", "spotify", "youtube", "youtubeMusic", "player",
+                "safari", "phone", "messages", "calendar", "weather", "settings",
+            ].into_iter().map(|app| serde_json::json!(app)).collect(),
             shortcuts: Vec::new(),
             layout: serde_json::json!({}),
             created_at: now,
@@ -226,6 +229,18 @@ fn validate_name(name: String) -> Result<String, String> {
     Ok(name)
 }
 
+fn valid_external_url(url: &str) -> bool {
+    if url.len() > 2048 || url.chars().any(|ch| ch.is_whitespace() || ch.is_control() || ch == '\\') {
+        return false;
+    }
+    let Some((scheme, rest)) = url.split_once("://") else { return false };
+    if !matches!(scheme.to_ascii_lowercase().as_str(), "http" | "https") {
+        return false;
+    }
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+    !authority.is_empty() && !authority.contains('@') && authority.contains('.')
+}
+
 fn validate_appearance(appearance: &ProfileAppearance) -> Result<(), String> {
     if !matches!(appearance.mode.as_str(), "auto" | "dark" | "light")
         || !matches!(appearance.icon_style.as_str(), "auto" | "dark" | "light")
@@ -318,11 +333,43 @@ pub fn profiles_update(
     if let Some(vehicle) = &profile.vehicle {
         validate_vehicle(vehicle)?;
     }
-    if profile.applications.len() > 100 || profile.shortcuts.len() > 100 {
-        return Err("El perfil supera el límite de aplicaciones o accesos directos.".into());
+    const ALLOWED_APPS: &[&str] = &[
+        "maps", "music", "spotify", "youtube", "youtubeMusic", "player",
+        "safari", "phone", "messages", "calendar", "weather", "settings",
+    ];
+    if profile.applications.len() > ALLOWED_APPS.len() {
+        return Err("El perfil supera el límite de aplicaciones.".into());
+    }
+    let mut seen_apps = std::collections::HashSet::new();
+    for app in &profile.applications {
+        let id = app.as_str().ok_or("El catálogo de aplicaciones no es válido.")?;
+        if !ALLOWED_APPS.contains(&id) || !seen_apps.insert(id) {
+            return Err("El catálogo de aplicaciones contiene elementos no válidos o duplicados.".into());
+        }
+    }
+    if profile.shortcuts.len() > 20 {
+        return Err("El perfil admite hasta 20 accesos directos.".into());
+    }
+    let mut seen_shortcuts = std::collections::HashSet::new();
+    for shortcut in &profile.shortcuts {
+        let object = shortcut.as_object().ok_or("Un acceso directo no es válido.")?;
+        let id = object.get("id").and_then(|v| v.as_str()).ok_or("Un acceso directo no tiene identificador.")?;
+        let name = object.get("name").and_then(|v| v.as_str()).ok_or("Un acceso directo no tiene nombre.")?;
+        let url = object.get("url").and_then(|v| v.as_str()).ok_or("Un acceso directo no tiene dirección.")?;
+        if !valid_id(id) || !seen_shortcuts.insert(id) || name.trim().is_empty()
+            || name.chars().count() > 40 || name.chars().any(char::is_control)
+            || !valid_external_url(url)
+        {
+            return Err("Un acceso directo contiene datos no válidos.".into());
+        }
     }
     if !profile.layout.is_object() {
         return Err("La distribución del perfil no es válida.".into());
+    }
+    if let Some(columns) = profile.layout.get("homeColumns") {
+        if !columns.as_u64().is_some_and(|value| (2..=6).contains(&value)) {
+            return Err("La cantidad de columnas de inicio debe estar entre 2 y 6.".into());
+        }
     }
     let _guard = store.lock.lock().unwrap_or_else(|e| e.into_inner());
     let existing_profiles = store.read_all()?;
@@ -454,6 +501,16 @@ mod tests {
         assert_eq!(appearance.icon_set, None);
         assert_eq!(appearance.icon_style, "auto");
         assert!(validate_appearance(&appearance).is_ok());
+    }
+
+    #[test]
+    fn profile_shortcuts_accept_only_safe_web_urls() {
+        assert!(valid_external_url("https://example.com/path?q=1"));
+        assert!(valid_external_url("http://localhost.example:3000"));
+        assert!(!valid_external_url("javascript:alert(1)"));
+        assert!(!valid_external_url("file:///C:/Windows"));
+        assert!(!valid_external_url("https://user@example.com"));
+        assert!(!valid_external_url("https://example.com\\evil"));
     }
 
     #[test]

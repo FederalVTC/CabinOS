@@ -128,6 +128,26 @@ fn apple_music_check(accounts: State<Accounts>) {
     accounts.0.apple_music.request(AccountAction::Check);
 }
 
+/// Opens a user-configured profile shortcut in the default browser. Only plain HTTP(S) web URLs are allowed.
+#[tauri::command]
+fn open_profile_shortcut(url: String) -> Result<(), String> {
+    if url.len() > 2048 || url.chars().any(|ch| ch.is_whitespace() || ch.is_control() || ch == '\\') {
+        return Err("La dirección del acceso directo no es válida.".into());
+    }
+    let Some((scheme, rest)) = url.split_once("://") else {
+        return Err("Solo se permiten direcciones HTTP o HTTPS.".into());
+    };
+    if !matches!(scheme.to_ascii_lowercase().as_str(), "http" | "https") {
+        return Err("Solo se permiten direcciones HTTP o HTTPS.".into());
+    }
+    let authority = rest.split(['/', '?', '#']).next().unwrap_or_default();
+    if authority.is_empty() || authority.contains('@') || !authority.contains('.') {
+        return Err("El dominio del acceso directo no es válido.".into());
+    }
+    westplay_host::browser::open(&url);
+    Ok(())
+}
+
 /// The maker's Kreosus page, where players support CabinOS's development.
 const SUPPORT_PAGE: &str = "https://github.com/FederalVTC/CabinOS";
 
@@ -224,6 +244,7 @@ fn main() {
             apple_music_check,
             open_support_page,
             open_social,
+            open_profile_shortcut,
             app_log_place,
             customize::customize_list,
             customize::add_wallpapers,

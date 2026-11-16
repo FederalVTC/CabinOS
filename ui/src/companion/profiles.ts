@@ -1,8 +1,8 @@
 import { call } from './bridge'
 
-import type { TruckProfile, VehicleIdentity } from '../shared/profiles'
+import type { ProfileShortcut, TruckProfile, VehicleIdentity } from '../shared/profiles'
 export { matchesVehicle, profileForVehicle } from '../shared/profiles'
-export type { TruckProfile, VehicleIdentity, ProfileAppearance } from '../shared/profiles'
+export type { TruckProfile, VehicleIdentity, ProfileAppearance, ProfileShortcut } from '../shared/profiles'
 
 export const profilesList = () => call<TruckProfile[]>('profiles_list')
 export const profilesCreate = (name: string, vehicle: VehicleIdentity | null) =>
