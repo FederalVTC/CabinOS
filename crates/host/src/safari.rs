@@ -37,7 +37,7 @@ use crate::speakers::{self, Equalizer, Head, Speaker};
 use crate::webview::{self, OffscreenWebView, Stage};
 
 /// Where the tabs' pictures are served to the cabin page (the tab overview's).
-pub const TABS_HOST: &str = "westplay.safari-tabs";
+pub const TABS_HOST: &str = "cabinos.safari-tabs";
 
 /// The most tabs whose pages stay live: the one shown and those used last (each is a browser's page, its memory
 /// and its process). A tab playing sound stays live whatever this says.
@@ -1149,7 +1149,7 @@ impl Safari {
         #[cfg(test)]
         {
             if let Some(site) = &self.test_site {
-                view.map_folder_to_any_page("westplay.safari-test", site)?;
+                view.map_folder_to_any_page("cabinos.safari-test", site)?;
             }
             // Tests never heard: a page's sound plays (and is paused and played on as asked), but none of it leaves
             // for the PC's speakers (owner 2026-11-08).
@@ -2027,7 +2027,7 @@ mod tests {
         };
         safari.command(&stage, &show).unwrap();
         safari
-            .command(&stage, &Command::Open { tab: 1, url: "https://westplay.safari-test/index.html".into() })
+            .command(&stage, &Command::Open { tab: 1, url: "https://cabinos.safari-test/index.html".into() })
             .unwrap();
         pump(2.5);
         let reports = safari.take_reports(&stage);
@@ -2040,7 +2040,7 @@ mod tests {
         let loaded = state(&reports, 1).expect("the tab's state");
         assert_eq!(loaded.title, "Test page");
         assert!(loaded.painted, "a loaded page says it has drawn");
-        assert_eq!(loaded.url, "https://westplay.safari-test/index.html");
+        assert_eq!(loaded.url, "https://cabinos.safari-test/index.html");
         assert!(!loaded.loading);
 
         // The field pressed, told; typed into.
@@ -2311,18 +2311,18 @@ mod tests {
         let stage = Stage::new(400, 300).unwrap();
         // The cab's profile, signed in (a cookie its page set).
         let cab = OffscreenWebView::new(&stage, 400, 300, &root.join("cab")).unwrap();
-        cab.map_folder_to_any_page("westplay.safari-test", &site).unwrap();
-        cab.navigate("https://westplay.safari-test/index.html").unwrap();
+        cab.map_folder_to_any_page("cabinos.safari-test", &site).unwrap();
+        cab.navigate("https://cabinos.safari-test/index.html").unwrap();
         pump(1.5);
         cab.evaluate("document.cookie = 'SID=signed-in; max-age=3600; path=/; secure'").unwrap();
         pump(0.3);
-        let given = sign_in_of(&cab, &["https://westplay.safari-test/"]);
+        let given = sign_in_of(&cab, &["https://cabinos.safari-test/"]);
         assert!(given.iter().any(|cookie| cookie.name == "SID" && cookie.value == "signed-in"), "read from the cab's");
         // Safari's own profile, given it: its first page has it.
         let mut safari = Safari::start(400, 300, &root.join("profile"), &root.join("tabs"), given).unwrap();
         safari.test_site = Some(site.clone());
         safari
-            .command(&stage, &Command::Open { tab: 1, url: "https://westplay.safari-test/index.html".into() })
+            .command(&stage, &Command::Open { tab: 1, url: "https://cabinos.safari-test/index.html".into() })
             .unwrap();
         pump(1.5);
         let cookie = safari.tab(1).unwrap().view.evaluate("document.cookie").unwrap();
@@ -2379,7 +2379,7 @@ mod tests {
         for (tab, page) in [(1, "site.html"), (2, "tall.html"), (3, "fixed.html")] {
             let show = Command::Show {
                 tab,
-                url: format!("https://westplay.safari-test/{page}"),
+                url: format!("https://cabinos.safari-test/{page}"),
                 x: 0.0,
                 y: 0.0,
                 width: 1040,
@@ -2441,7 +2441,7 @@ mod tests {
         std::fs::write(
             site.join("page.html"),
             "<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'><title>page</title>             <body style='margin:0'>\
-             <iframe src='https://westplay.safari-test/inner.html' \
+             <iframe src='https://cabinos.safari-test/inner.html' \
              style='position:absolute;left:100px;top:100px;width:300px;height:100px;border:0'></iframe>",
         )
         .unwrap();
@@ -2456,7 +2456,7 @@ mod tests {
         safari.test_site = Some(site.clone());
         let show = Command::Show {
             tab: 1,
-            url: "https://westplay.safari-test/page.html".into(),
+            url: "https://cabinos.safari-test/page.html".into(),
             x: 0.0,
             y: 0.0,
             width: 1040,
@@ -2564,7 +2564,7 @@ mod tests {
         safari.test_site = Some(site.clone());
         let show = Command::Show {
             tab: 1,
-            url: "https://westplay.safari-test/page.html".into(),
+            url: "https://cabinos.safari-test/page.html".into(),
             x: 0.0,
             y: 0.0,
             width: 1040,
@@ -2664,7 +2664,7 @@ mod tests {
             "<!doctype html><title>page</title><script>window.seen = {};\
              addEventListener('message', (e) => { if (e.data && e.data.frame) window.seen[e.data.frame] = e.data })</script>\
              <iframe src='https://challenges.cloudflare.com/check.html'></iframe>\
-             <iframe src='https://westplay.safari-test/other.html'></iframe>",
+             <iframe src='https://cabinos.safari-test/other.html'></iframe>",
         )
         .unwrap();
         let stage = Stage::new(1040, 560).unwrap();
@@ -2672,7 +2672,7 @@ mod tests {
         safari.test_site = Some(site.clone());
         let show = Command::Show {
             tab: 1,
-            url: "https://westplay.safari-test/page.html".into(),
+            url: "https://cabinos.safari-test/page.html".into(),
             x: 0.0,
             y: 0.0,
             width: 1040,
@@ -2687,7 +2687,7 @@ mod tests {
         // Cloudflare's check's address served here, from a folder of the test's own.
         safari.tab(1).unwrap().view.map_folder_to_any_page("challenges.cloudflare.com", &check).unwrap();
         safari
-            .command(&stage, &Command::Open { tab: 1, url: "https://westplay.safari-test/page.html".into() })
+            .command(&stage, &Command::Open { tab: 1, url: "https://cabinos.safari-test/page.html".into() })
             .unwrap();
         for _ in 0..8 {
             pump(0.25);
@@ -2709,7 +2709,7 @@ mod tests {
         assert_eq!(check["cabSound"], false);
         assert_eq!(check["webview"], false, "no WebView mark in the check");
         assert_eq!(check["got"], 0, "none of the cab's messages sent to the check");
-        let other = &seen["westplay.safari-test"];
+        let other = &seen["cabinos.safari-test"];
         assert_eq!(other["play"], false, "another site's frame has the cab's script");
         assert!(other["got"].as_u64().unwrap() >= 2, "and the cab's messages");
         let top = read("JSON.stringify(['westplayCabSound' in window, 'webview' in (window.chrome ?? {})])");
@@ -2781,7 +2781,7 @@ mod tests {
         for (tab, page) in [(1, "header.html"), (2, "live.html"), (3, "loads.html"), (4, "own.html")] {
             let show = Command::Show {
                 tab,
-                url: format!("https://westplay.safari-test/{page}"),
+                url: format!("https://cabinos.safari-test/{page}"),
                 x: 0.0,
                 y: 0.0,
                 width: 1037,
@@ -2960,7 +2960,7 @@ mod tests {
             let tab = tab as u32 + 1;
             let show = Command::Show {
                 tab,
-                url: "https://westplay.safari-test/dark.html".into(),
+                url: "https://cabinos.safari-test/dark.html".into(),
                 x,
                 y,
                 width,
@@ -3087,7 +3087,7 @@ mod tests {
         safari.test_site = Some(site.clone());
         let show = Command::Show {
             tab: 1,
-            url: "https://westplay.safari-test/long.html".into(),
+            url: "https://cabinos.safari-test/long.html".into(),
             x: 0.0,
             y: 0.0,
             width: 1040,
