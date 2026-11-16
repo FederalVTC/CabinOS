@@ -70,7 +70,7 @@ export function About({ status, setup, cw, update, showUpdate }: PageProps) {
             onClick={showUpdate}
           />
         ) : (
-          <Row title={cw.update.row} value={looked ? cw.update.upToDate : undefined} />
+          <Row title={cw.update.row} value="Canal propio de actualizaciones pendiente de configuración" />
         )}
       </Group>
       <Group title={w.diagnostics} place={5}>
