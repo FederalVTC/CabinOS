@@ -1,4 +1,4 @@
-//! Bridge between the game plugin (`westplay.dll`, inside ETS2/ATS) and the WestPlay app.
+//! Bridge between the game plugin (`cabinos.dll`, inside ETS2/ATS) and the CabinOS app.
 //!
 //! - **Frames** travel through a shared D3D11 texture created by the app and opened by the plugin by
 //!   name ([`frame_texture_name`]). Its keyed mutex is used as a plain lock (both sides use
@@ -37,7 +37,7 @@ pub const BRIDGE_VERSION: u32 = 28;
 pub const SCREEN_WIDTH: u32 = 1280;
 pub const SCREEN_HEIGHT: u32 = 720;
 
-/// One kind of in-cabin screen: the GPS UI scripts the mod patches for it (none for WestPlay's tablet, whose
+/// One kind of in-cabin screen: the GPS UI scripts the mod patches for it (none for CabinOS's tablet, whose
 /// model shows the texture itself). See `screen_layouts.txt`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ScreenLayout {
@@ -63,11 +63,11 @@ pub fn screen_layouts() -> &'static [ScreenLayout] {
     &LAYOUTS
 }
 
-/// The height WestPlay's page is laid out at on the layout at `index` (in [`screen_layouts`]), its width
+/// The height CabinOS's page is laid out at on the layout at `index` (in [`screen_layouts`]), its width
 /// [`SCREEN_WIDTH`]: the frame's own, but where the game shows the frame in another shape. The stock screen
-/// (`generic`, WestPlay's only in the Scania S and R's 7" display) shows it on a display of 1.615:1 (its model's
+/// (`generic`, CabinOS's only in the Scania S and R's 7" display) shows it on a display of 1.615:1 (its model's
 /// screen piece: PLAN.md section C), stretching 16:9 to that: laid out at 1280 x 793, of that shape, and
-/// squeezed into the frame by the app, the page shows as laid out (owner 2026-10-21). WestPlay's tablet, an iPad
+/// squeezed into the frame by the app, the page shows as laid out (owner 2026-10-21). CabinOS's tablet, an iPad
 /// Air 5 (owner 2026-10-27), shows the frame's 720 rows whole on its glass, 23.16 x 16.25 cm (1.425:1, its
 /// model's: crates/setup tablet.rs): laid out at 1280 x 898. Oyuncuyusbis' coaches' displays, each the shape of its model's screen (its corners,
 /// 2026-10-24): the Travego 16 SHD's 16.2 x 9.6 cm (1.691:1, both its bands), the Setra S 531 DT's 15.2 x 9.0 cm
@@ -99,7 +99,7 @@ pub fn page_height(index: usize) -> u32 {
     }
 }
 
-/// WestPlay's tablet's layout: a dashboard toy any truck can have (WestPlay shows on it in every truck), its
+/// CabinOS's tablet's layout: a dashboard toy any truck can have (CabinOS shows on it in every truck), its
 /// model showing the layout's texture itself.
 pub const TABLET: &str = "tablet";
 
@@ -108,7 +108,7 @@ pub fn tablet_layout() -> usize {
     screen_layouts().iter().position(|layout| layout.id == TABLET).expect("screen_layouts.txt has the tablet")
 }
 
-/// WestPlay's screens mod for the game `game_id` (the SDK's: `eut2`, `ats`), in WestPlay's own folder in Documents,
+/// CabinOS's screens mod for the game `game_id` (the SDK's: `eut2`, `ats`), in CabinOS's own folder in Documents,
 /// which the plugin mounts into that game: each game's own, built from its files (ETS2's named as it was before
 /// ATS).
 pub fn mod_file(game_id: &str) -> &'static str {
@@ -118,7 +118,7 @@ pub fn mod_file(game_id: &str) -> &'static str {
     }
 }
 
-/// The file in WestPlay's own folder, beside the game `game_id`'s mod ([`mod_file`]), of the vehicles WestPlay's
+/// The file in CabinOS's own folder, beside the game `game_id`'s mod ([`mod_file`]), of the vehicles CabinOS's
 /// tablet shows nothing in there (owner 2026-10-26: the tablet a hookup any vehicle's dashboard set takes, so blank
 /// where it mustn't show): their ids' hashes ([`cityhash::city_hash64`]), each in hex on a line of its own. Written
 /// by setup with the mod, read by the plugin as the truck changes.
@@ -162,22 +162,22 @@ pub fn screen_layout_for_texture(width: u32, height: u32) -> Option<usize> {
 
 /// The cab's mark: a fully transparent texture the mod adds to the dashboard scripts of every truck the tablet goes
 /// in. The game draws a dashboard's script every frame the camera is in the cab, wherever the player looks, and
-/// never from outside, as it draws the GPS screens' (whose WestPlay screen tells the camera in the cab): the tablet
+/// never from outside, as it draws the GPS screens' (whose CabinOS screen tells the camera in the cab): the tablet
 /// is drawn with the cab's models, left out as the player looks away from it (owner 2026-10-25: the music muffled
 /// as the head turned in the interior). Its size, no screen layout's texture's.
 pub const CAB_MARK_WIDTH: u32 = SCREEN_WIDTH;
 pub const CAB_MARK_HEIGHT: u32 = 1;
 
 /// The parking camera's mark: a fully transparent texture the mod adds to the parking camera of the GPS scripts that
-/// have one (the Coaches DLC's coaches), drawn only while the game shows the camera, over WestPlay's screen (owner
+/// have one (the Coaches DLC's coaches), drawn only while the game shows the camera, over CabinOS's screen (owner
 /// 2026-11-13: the screen under it takes no clicks then). Its size, neither a screen layout's nor the cab's mark's.
 pub const PARKING_MARK_WIDTH: u32 = SCREEN_WIDTH;
 pub const PARKING_MARK_HEIGHT: u32 = 2;
 /// How lately (game frames) the parking camera's mark was drawn for the camera to count as shown (as a screen of
-/// WestPlay's counts as drawn lately in the plugin): half a second at 60 frames a second.
+/// CabinOS's counts as drawn lately in the plugin): half a second at 60 frames a second.
 pub const PARKING_SHOWN_FRAMES: u64 = 30;
 
-/// Whether the parking camera covers WestPlay's screen at game frame `heartbeat`: its mark drawn in frame
+/// Whether the parking camera covers CabinOS's screen at game frame `heartbeat`: its mark drawn in frame
 /// `parking_frame` (0: never), at most [`PARKING_SHOWN_FRAMES`] before.
 pub fn parking_camera_shown(parking_frame: u64, heartbeat: u64) -> bool {
     parking_frame != 0 && heartbeat.saturating_sub(parking_frame) <= PARKING_SHOWN_FRAMES
@@ -197,29 +197,29 @@ pub fn game_number(game_id: &str) -> u32 {
     }
 }
 
-/// [`PluginBlock::truck_supported`]: a screen of WestPlay's drawn in the player's truck.
+/// [`PluginBlock::truck_supported`]: a screen of CabinOS's drawn in the player's truck.
 pub const TRUCK_SUPPORTED: u32 = 1;
-/// [`PluginBlock::truck_supported`]: the truck's screen isn't WestPlay's (one other trucks share, WestPlay's only in
-/// some), or its cab is drawn with the electrics on and no screen of WestPlay's layouts at all (a mod truck's own).
+/// [`PluginBlock::truck_supported`]: the truck's screen isn't CabinOS's (one other trucks share, CabinOS's only in
+/// some), or its cab is drawn with the electrics on and no screen of CabinOS's layouts at all (a mod truck's own).
 pub const TRUCK_UNSUPPORTED: u32 = 2;
 
-/// The trucks WestPlay shows in on a layout that trucks it doesn't support share (SDK model ids, without the
+/// The trucks CabinOS shows in on a layout that trucks it doesn't support share (SDK model ids, without the
 /// `vehicle.` prefix): most trucks' interiors name the stock GPS screen (`generic`, `ui/gps.sii`), and of
-/// those only the Scania S and R's and the S BEV's (the S's 7" display) are WestPlay's. The other layouts are
+/// those only the Scania S and R's and the S BEV's (the S's 7" display) are CabinOS's. The other layouts are
 /// their own trucks' scripts.
 const SHARED_LAYOUT_TRUCKS: &[(&str, &[&str])] = &[
     ("generic", &["scania.s_2016", "scania.r_2016", "scania.s_2024e"]),
-    // The game's toy GPS (Cabin Accessories), WestPlay's only on Oyuncuyusbis' Setra S 516 HD/2's tablet part.
+    // The game's toy GPS (Cabin Accessories), CabinOS's only on Oyuncuyusbis' Setra S 516 HD/2's tablet part.
     ("setra-516", &["setra516hd"]),
 ];
 
-/// The trucks WestPlay shows in on the layout `id`, if it's one other trucks share ([`SHARED_LAYOUT_TRUCKS`]); none
+/// The trucks CabinOS shows in on the layout `id`, if it's one other trucks share ([`SHARED_LAYOUT_TRUCKS`]); none
 /// otherwise (a layout of its own trucks' scripts).
 pub fn layout_trucks(id: &str) -> &'static [&'static str] {
     SHARED_LAYOUT_TRUCKS.iter().find(|(layout, _)| *layout == id).map_or(&[], |(_, trucks)| *trucks)
 }
 
-/// Whether WestPlay shows on the layout at `index` (in [`screen_layouts`]) in the truck `truck_id` (the SDK's
+/// Whether CabinOS shows on the layout at `index` (in [`screen_layouts`]) in the truck `truck_id` (the SDK's
 /// id, with or without its `vehicle.` prefix): every other truck keeps the game's own screen.
 pub fn screen_supported(index: usize, truck_id: &str) -> bool {
     let Some(layout) = screen_layouts().get(index) else { return false };
@@ -275,17 +275,17 @@ pub struct PluginBlock {
     /// LUID of the GPU the game renders on; the app must create its frame texture on the same adapter.
     pub adapter_luid_low: AtomicU32,
     pub adapter_luid_high: AtomicI32,
-    /// Layout of the most recently drawn WestPlay screen: its index in [`screen_layouts`] plus one, or 0
+    /// Layout of the most recently drawn CabinOS screen: its index in [`screen_layouts`] plus one, or 0
     /// when none has been drawn yet.
     pub screen_layout: AtomicU32,
-    /// Game frame (`heartbeat` value) in which a WestPlay screen was last drawn.
+    /// Game frame (`heartbeat` value) in which a CabinOS screen was last drawn.
     pub screen_frame: AtomicU64,
     /// Game frame in which the cab's mark ([`CAB_MARK_WIDTH`]) was last drawn: the camera in the cab then.
     pub cab_frame: AtomicU64,
     /// Game frame in which the parking camera's mark ([`PARKING_MARK_WIDTH`]) was last drawn: the game's parking
-    /// camera over WestPlay's screen then (0: not since the game started).
+    /// camera over CabinOS's screen then (0: not since the game started).
     pub parking_frame: AtomicU64,
-    /// Whether the truck the player is in is one WestPlay shows in, as the plugin last saw ([`TRUCK_SUPPORTED`],
+    /// Whether the truck the player is in is one CabinOS shows in, as the plugin last saw ([`TRUCK_SUPPORTED`],
     /// [`TRUCK_UNSUPPORTED`]; 0: not known yet, since the truck changed).
     pub truck_supported: AtomicU32,
     pub telemetry: SeqLock<Telemetry>,
@@ -293,7 +293,7 @@ pub struct PluginBlock {
     pub truck: SeqLock<TruckInfo>,
     /// The player's job (`active` false when there is none).
     pub job: SeqLock<JobInfo>,
-    /// Mouse input for the WestPlay screen while the player holds the interaction key.
+    /// Mouse input for the CabinOS screen while the player holds the interaction key.
     pub pointer: PointerBlock,
     /// Under TruckersMP: the players around the player, from TruckersMP's SDK (the plugin's `truckersmp`).
     pub nearby: SeqLock<Nearby>,
@@ -391,7 +391,7 @@ impl<const N: usize> KeyQueue<N> {
 /// Mouse input taken away from the game while the player holds the interaction key (written by the plugin).
 #[repr(C)]
 pub struct PointerBlock {
-    /// 1 while the interaction key is held: the game sees no mouse or keyboard input, WestPlay gets the mouse.
+    /// 1 while the interaction key is held: the game sees no mouse or keyboard input, CabinOS gets the mouse.
     pub active: AtomicU32,
     /// Movement (DirectInput counts, x right, y down) and wheel since the app last took them: the plugin
     /// adds, the app swaps them with 0.
@@ -420,7 +420,7 @@ pub struct HostBlock {
     pub frame_height: AtomicU32,
     /// Incremented after each frame written to the shared texture.
     pub frame_seq: AtomicU64,
-    /// 1 while WestPlay should cover the truck's screen; 0 shows the game's original screen.
+    /// 1 while CabinOS should cover the truck's screen; 0 shows the game's original screen.
     pub screen_enabled: AtomicU32,
     /// The key the player holds to use the screen (a Windows virtual-key code, from the app's settings);
     /// 0 until the app has set it, meaning [`DEFAULT_INTERACTION_KEY`].
@@ -431,7 +431,7 @@ pub struct HostBlock {
     pub keybinds: [AtomicU32; KEYBIND_COUNT],
 }
 
-/// What WestPlay does from the game by a key of the player's choosing (the app's settings).
+/// What CabinOS does from the game by a key of the player's choosing (the app's settings).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(usize)]
 pub enum Keybind {
@@ -467,7 +467,7 @@ pub fn keybind_of(value: u32) -> Option<(u32, bool)> {
     (key != 0).then_some((key, value & (1 << 16) != 0))
 }
 
-/// Typing on the player's own keyboard into the WestPlay text field selected: the app says which selection
+/// Typing on the player's own keyboard into the CabinOS text field selected: the app says which selection
 /// (the page's), the plugin whether it types into it and what was typed. It types while the truck stands
 /// still, from a selection made then; once the truck moves the keys are the game's again until the player
 /// selects a field anew (W, the throttle, must never type a "w" at a red light).
@@ -560,7 +560,7 @@ pub enum RouteAction {
     Go = 2,
     /// No more waypoints: to a job's destination still, or no route at all.
     End = 3,
-    /// The route to the node through the waypoints `vias` (in order), as WestPlay planned it: the route the
+    /// The route to the node through the waypoints `vias` (in order), as CabinOS planned it: the route the
     /// player picked, held by them. Not while on a job.
     Follow = 4,
 }
@@ -584,7 +584,7 @@ pub enum RouteAnswer {
     Full = -3,
     /// The game has no node with that uid.
     NoSuchNode = -2,
-    /// The game's code isn't the version WestPlay knows: nothing was done.
+    /// The game's code isn't the version CabinOS knows: nothing was done.
     Unsupported = -1,
     /// The game's route wasn't as expected, or the request made no sense: nothing was done.
     Unexpected = -4,
