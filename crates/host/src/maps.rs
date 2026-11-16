@@ -1215,7 +1215,7 @@ fn built_at(folder: &Path) -> Option<u64> {
 }
 
 /// `{"type":"map","folder":"europe-cbf29ce484222325","built":1792112933}`: the map the cab shows, in WestPlay's
-/// maps folder (served at `https://westplay.maps/`), and when it was built; `null` for none.
+/// maps folder (served at `https://cabinos.maps/`), and when it was built; `null` for none.
 pub fn map_message(folder: Option<&str>, built: Option<u64>) -> String {
     serde_json::json!({ "type": "map", "folder": folder, "built": built }).to_string()
 }
