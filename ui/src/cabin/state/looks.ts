@@ -76,8 +76,11 @@ function prepare(files: string[]): Promise<void> {
 }
 
 /** For the shell: the icons on show, ready in both looks, so the screen's Light/Dark crossfade takes them along. */
-export function usePreparedIcons(): void {
-  const files = useLooks((state) => iconFiles(state, state.iconSet).join('\n'))
+export function usePreparedIcons(iconSetOverride?: string | null): void {
+  const files = useLooks((state) => {
+    const iconSet = iconSetOverride === undefined ? state.iconSet : iconSetOverride
+    return iconFiles(state, iconSet).join('\n')
+  })
   useEffect(() => void prepare(files.split('\n')), [files])
 }
 
