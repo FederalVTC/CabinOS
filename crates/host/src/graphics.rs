@@ -40,7 +40,12 @@ pub fn adapters() -> Vec<Adapter> {
     for adapter in listed {
         // SAFETY: the adapter is alive; the description is a local.
         let Ok(desc) = (unsafe { adapter.GetDesc1() }) else { continue };
-        if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0 {
+        let name = String::from_utf16_lossy(&desc.Description).trim_end_matches('\\0').trim().to_string();
+        // Some Windows virtual machines expose Microsoft's Basic Render Driver without setting DXGI's
+        // SOFTWARE flag. It is not a physical GPU and must not be offered as a rendering choice.
+        if desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE.0 as u32 != 0
+            || name.to_ascii_lowercase().contains("basic render")
+        {
             continue;
         }
         let pci = format!("{:04x}:{:04x}:{:08x}:{}", desc.VendorId, desc.DeviceId, desc.SubSysId, desc.Revision);

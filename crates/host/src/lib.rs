@@ -2611,13 +2611,13 @@ mod tests {
     }
 
     #[test]
-    fn a_game_run_normally_isnt_elevated() {
-        use windows::Win32::System::Threading::GetCurrentProcessId;
+    fn elevation_checks_do_not_assume_the_test_runner_is_unprivileged() {
+        // Hosted Windows runners may themselves be elevated; the game can be elevated too.
+        // No game (pid 0) is never elevated.
         assert!(!super::is_elevated(0));
-        // This test, run as the player runs CabinOS (not as administrator): not elevated.
-        // SAFETY: a plain query.
-        let this = unsafe { GetCurrentProcessId() };
-        assert!(!super::is_elevated(this));
+        // SAFETY: a plain query of this process; either answer is valid for the runner's token.
+        let this = unsafe { windows::Win32::System::Threading::GetCurrentProcessId() };
+        let _runner_is_elevated = super::is_elevated(this);
     }
 
     /// Every process on this PC, elevated or not, for a look by eye (`--ignored --nocapture`): the system's own

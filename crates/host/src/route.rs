@@ -1138,16 +1138,12 @@ mod tests {
         other.mods.push(a_mod("turkey", &["europe"], true));
         assert_ne!(JunctionFiles::of(running, Some(&(set_up.clone(), other))), files);
 
-        // ATS running, the profile played ETS2's (ATS not set up yet): ATS's base map alone.
-        let ats = std::env::temp_dir().join(format!("westplay-junctions-ats-{}", std::process::id()));
+        // ATS is deliberately outside CabinOS's supported scope: never recognise its executable as ETS2.
+        let ats = std::env::temp_dir().join(format!("cabinos-ats-excluded-{}", std::process::id()));
         std::fs::create_dir_all(ats.join("bin").join("win_x64")).unwrap();
         std::fs::write(ats.join("base.scs"), b"").unwrap();
         std::fs::write(ats.join("bin").join("win_x64").join("amtrucks.exe"), b"").unwrap();
-        let in_ats = JunctionFiles::of(&ats, Some(&(set_up, profile_again)));
-        assert_eq!(
-            (in_ats.base, in_ats.map.as_str(), in_ats.mods.len(), in_ats.played.is_none()),
-            ("usa", "usa", 0, true)
-        );
+        assert!(westplay_setup::game::Game::at(&ats, westplay_setup::game::FoundBy::Chosen).is_none());
         let _ = std::fs::remove_dir_all(&ats);
     }
 }
