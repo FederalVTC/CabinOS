@@ -13,8 +13,8 @@ permissions:
   contents: read
 
 concurrency:
-  # Isolate each source revision: a stalled older Windows runner must not block the current installer build.
-  group: cabinos-ci-${{ github.ref }}-${{ github.sha }}
+  # Keep one Windows build per branch; newer commits supersede older queued or running builds.
+  group: cabinos-ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
