@@ -29,10 +29,11 @@ describe('truck profile matching', () => {
     expect(matchesVehicle(assigned, truck())).toBe(false)
   })
 
-  it('uses model and brand only when both fingerprints are unavailable', () => {
+  it('never falls back to model and brand when a fingerprint is unavailable', () => {
     const noFingerprint = profile('scania-one', truck({ fingerprint: null }))
-    expect(matchesVehicle(noFingerprint, truck({ fingerprint: null }))).toBe(true)
+    expect(matchesVehicle(noFingerprint, truck({ fingerprint: null }))).toBe(false)
     expect(matchesVehicle(noFingerprint, truck())).toBe(false)
+    expect(matchesVehicle(profile('scania-two', truck()), truck({ fingerprint: null }))).toBe(false)
     expect(matchesVehicle(noFingerprint, truck({ fingerprint: null, modelId: 'vehicle.scania.r_2016' }))).toBe(false)
   })
 
