@@ -13,7 +13,7 @@ import './shell/apple.css'
 
 // Development builds expose the stores for console debugging and browser previews (`westplay.cabin`).
 if (import.meta.env.DEV) {
-  Object.assign(window, { westplay: { cabin: useCabin, live: useLive } })
+  Object.assign(window, { cabinos: { cabin: useCabin, live: useLive } })
 }
 
 installDemo()
