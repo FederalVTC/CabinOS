@@ -226,6 +226,22 @@ fn validate_name(name: String) -> Result<String, String> {
     Ok(name)
 }
 
+fn validate_appearance(appearance: &ProfileAppearance) -> Result<(), String> {
+    if !matches!(appearance.mode.as_str(), "auto" | "dark" | "light")
+        || !matches!(appearance.icon_style.as_str(), "auto" | "dark" | "light")
+        || appearance.theme.is_empty()
+        || appearance.theme.len() > 48
+        || appearance.wallpaper.as_ref().is_some_and(|value| value.len() > 256)
+        || appearance.icon_set.as_ref().is_some_and(|value| value.len() > 128)
+        || appearance.accent_color.len() != 7
+        || !appearance.accent_color.starts_with('#')
+        || !appearance.accent_color[1..].bytes().all(|byte| byte.is_ascii_hexdigit())
+    {
+        return Err("La apariencia del perfil contiene valores no válidos.".into());
+    }
+    Ok(())
+}
+
 fn validate_vehicle(vehicle: &VehicleIdentity) -> Result<(), String> {
     let fields = [&vehicle.model_id, &vehicle.brand_id, &vehicle.brand, &vehicle.model];
     if vehicle.model_id.trim().is_empty() || fields.iter().any(|field| field.len() > 128) {
@@ -298,6 +314,7 @@ pub fn profiles_update(
         return Err("No se puede modificar este perfil.".into());
     }
     profile.name = validate_name(profile.name)?;
+    validate_appearance(&profile.appearance)?;
     if let Some(vehicle) = &profile.vehicle {
         validate_vehicle(vehicle)?;
     }
