@@ -41,3 +41,14 @@ export function isTruckProfile(value: unknown): value is TruckProfile {
     Array.isArray(profile.applications) && Array.isArray(profile.shortcuts) &&
     typeof profile.layout === 'object' && profile.layout !== null
 }
+/** A profile matches only when both sides have the same confident vehicle fingerprint. */
+export function matchesVehicle(profile: TruckProfile, vehicle: VehicleIdentity): boolean {
+  const assigned = profile.vehicle
+  return Boolean(assigned?.fingerprint && vehicle.fingerprint && assigned.fingerprint === vehicle.fingerprint)
+}
+
+/** Automatic activation is permitted only when exactly one custom profile matches. */
+export function profileForVehicle(profiles: TruckProfile[], vehicle: VehicleIdentity): TruckProfile | null {
+  const matches = profiles.filter((profile) => profile.id !== 'default' && matchesVehicle(profile, vehicle))
+  return matches.length === 1 ? matches[0] : null
+}
