@@ -81,6 +81,7 @@ impl Profiles {
     pub fn load(dir: &Path) -> std::io::Result<Self> {
         std::fs::create_dir_all(dir)?;
         let store = Self { dir: dir.to_path_buf(), lock: Mutex::new(()) };
+        store.recover_backups()?;
         let default_path = store.path("default");
         if !default_path.exists() {
             store.write(&TruckProfile::new(
@@ -119,12 +120,48 @@ impl Profiles {
         Ok(profiles)
     }
 
+    /// Restore an interrupted replacement before reading profiles. Backups are only made by this store.
+    fn recover_backups(&self) -> std::io::Result<()> {
+        for entry in std::fs::read_dir(&self.dir)? {
+            let entry = entry?;
+            let name = entry.file_name();
+            let Some(name) = name.to_str() else { continue };
+            let Some(id) = name.strip_suffix(".json.backup") else { continue };
+            if !valid_id(id) { continue; }
+            let backup = entry.path();
+            let original = self.path(id);
+            if original.exists() {
+                std::fs::remove_file(backup)?;
+            } else {
+                std::fs::rename(backup, original)?;
+            }
+        }
+        Ok(())
+    }
+
+    /// Replace an existing profile safely on Windows too, where rename-over-existing is not supported.
+    /// If interrupted between the two renames, load() restores the backup.
     fn write(&self, profile: &TruckProfile) -> std::io::Result<()> {
         let path = self.path(&profile.id);
         let partial = self.dir.join(format!("{}.json.partial", profile.id));
+        let backup = self.dir.join(format!("{}.json.backup", profile.id));
         let json = serde_json::to_string_pretty(profile).map_err(std::io::Error::other)?;
         std::fs::write(&partial, json)?;
-        std::fs::rename(partial, path)
+        if path.exists() {
+            if backup.exists() {
+                std::fs::remove_file(&backup)?;
+            }
+            std::fs::rename(&path, &backup)?;
+            match std::fs::rename(&partial, &path) {
+                Ok(()) => std::fs::remove_file(backup),
+                Err(error) => {
+                    let _ = std::fs::rename(&backup, &path);
+                    Err(error)
+                }
+            }
+        } else {
+            std::fs::rename(partial, path)
+        }
     }
 }
 
@@ -293,6 +330,26 @@ mod tests {
         let all = store.read_all().unwrap();
         assert_eq!(all.len(), 2);
         assert_eq!(all.iter().find(|p| p.id == profile.id).unwrap().name, "Mi Scania");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn profile_updates_replace_existing_files_and_recover_interrupted_writes() {
+        let dir = std::env::temp_dir().join(format!("cabinos-profile-replace-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Profiles::load(&dir).unwrap();
+        let mut profile = TruckProfile::new("p-test".into(), "Mi Scania".into(), None, now());
+        store.write(&profile).unwrap();
+        profile.name = "Mi Volvo".into();
+        store.write(&profile).unwrap();
+        assert_eq!(store.read_all().unwrap().iter().find(|p| p.id == "p-test").unwrap().name, "Mi Volvo");
+
+        let path = store.path("p-test");
+        let backup = dir.join("p-test.json.backup");
+        std::fs::rename(&path, &backup).unwrap();
+        let recovered = Profiles::load(&dir).unwrap();
+        assert_eq!(recovered.read_all().unwrap().iter().find(|p| p.id == "p-test").unwrap().name, "Mi Volvo");
+        assert!(!backup.exists());
         let _ = std::fs::remove_dir_all(&dir);
     }
 
