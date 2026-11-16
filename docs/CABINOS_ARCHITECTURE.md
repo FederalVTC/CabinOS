@@ -24,17 +24,12 @@ Datos previstos por perfil:
 ## Persistencia propuesta
 
 ```text
-CabinOS_Data/
-├── settings/
-│   └── general.json
-├── profiles/
-│   ├── default.json
-│   └── <profile-uuid>.json
-├── applications/
-│   └── catalog.json
-├── themes/
-├── wallpapers/
-└── backups/
+%LOCALAPPDATA%/CabinOS/profiles/
+├── default.json
+└── <profile-id>.json
+
+La ubicación exacta se obtiene mediante el directorio de datos locales de Tauri para el identificador
+com.elabuelostreaming.cabinos. Los ajustes heredados y los datos de WestPlay no se importan automáticamente.
 ```
 
 Las escrituras deben ser atómicas, con validación de esquema y copias de seguridad antes de migraciones. La ubicación definitiva se resolverá mediante el directorio de datos de aplicación de Windows, nunca dentro de `Program Files` ni de la carpeta de ETS2.
@@ -54,6 +49,15 @@ El actualizador heredado de WestPlay no puede distribuir versiones de CabinOS. S
 - No ejecutar comandos arbitrarios desde entradas de perfiles.
 - No modificar partidas guardadas ni archivos del usuario salvo que una función lo requiera y exista consentimiento claro.
 - Preservar GPL-3.0-or-later y avisos de terceros.
+
+
+## Identidad del camión y asociación de perfiles
+
+El host recibe la identidad del camión desde el SDK de SCS. CabinOS expone a la interfaz el identificador de modelo, marca y nombre; nunca envía la matrícula en claro. Cuando existe una matrícula, el host calcula una huella local determinista a partir del modelo y la matrícula. La asociación prioriza esa huella; si no existe, solo puede usar el identificador del modelo cuando hay una única coincidencia. Si hay varias coincidencias, no se cambia automáticamente de perfil.
+
+El almacén de perfiles crea un perfil predeterminado que no se puede borrar. Los perfiles personalizados se guardan como archivos JSON independientes. Cada perfil admite apariencia, aplicaciones, accesos directos y distribución; las escrituras pasan por un archivo temporal. No se permite asignar la misma huella de camión a dos perfiles.
+
+La pantalla de administración inicial está integrada en Configuración. La activación automática dentro de la cabina y la aplicación efectiva de aplicaciones, accesos directos y diseños por perfil siguen pendientes de implementación y pruebas.
 
 ## Estado
 
