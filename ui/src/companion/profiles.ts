@@ -1,6 +1,7 @@
 import { call } from './bridge'
 
 import type { TruckProfile, VehicleIdentity } from '../shared/profiles'
+export { matchesVehicle, profileForVehicle } from '../shared/profiles'
 export type { TruckProfile, VehicleIdentity, ProfileAppearance } from '../shared/profiles'
 
 export const profilesList = () => call<TruckProfile[]>('profiles_list')
@@ -26,22 +27,4 @@ export function vehicleIdentity(truck: {
     model: truck.name,
     fingerprint: truck.fingerprint,
   }
-}
-
-/** A vehicle is matched by its unique local fingerprint whenever both sides have one. */
-export function matchesVehicle(profile: TruckProfile, vehicle: VehicleIdentity): boolean {
-  const assigned = profile.vehicle
-  if (!assigned) return false
-  // Automatic matching is only safe with a fingerprint on both sides. Model and brand alone
-  // can identify several physical trucks and must never activate a profile.
-  return Boolean(vehicle.fingerprint && assigned.fingerprint && vehicle.fingerprint === assigned.fingerprint)
-}
-
-/** Only return an automatic match when exactly one custom profile identifies this truck. */
-export function profileForVehicle(
-  profiles: TruckProfile[],
-  vehicle: VehicleIdentity,
-): TruckProfile | null {
-  const matches = profiles.filter((profile) => profile.id !== 'default' && matchesVehicle(profile, vehicle))
-  return matches.length === 1 ? matches[0] : null
 }
