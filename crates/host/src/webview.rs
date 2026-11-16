@@ -272,7 +272,7 @@ impl OffscreenWebView {
             CreateWindowExW(
                 WINDOW_EX_STYLE(0),
                 w!("STATIC"),
-                w!("westplay-offscreen-host"),
+                w!("cabinos-offscreen-host"),
                 if on_screen { WS_POPUP } else { WS_OVERLAPPEDWINDOW },
                 if on_screen { 0 } else { OFF_THE_DESKTOP },
                 if on_screen { 0 } else { OFF_THE_DESKTOP },
@@ -1098,10 +1098,10 @@ mod tests {
             console.error = (...a) => { __errors.push('console: ' + a.map(String).join(' ')); error(...a) };"#,
         )
         .unwrap();
-        view.map_folder("westplay.cabin", Path::new(&ui)).unwrap();
-        view.navigate("https://westplay.cabin/cabin.html").unwrap();
+        view.map_folder("cabinos.cabin", Path::new(&ui)).unwrap();
+        view.navigate("https://cabinos.cabin/cabin.html").unwrap();
         // As the host goes on (crate::run): the maps' and the player's own looks' folders, mapped as the page loads.
-        for (host, name) in [("westplay.maps", "maps"), ("westplay.customize", "customize")] {
+        for (host, name) in [("cabinos.maps", "maps"), ("cabinos.customize", "customize")] {
             let dir = std::env::temp_dir().join(format!("westplay-built-cab-{name}-{}", std::process::id()));
             std::fs::create_dir_all(&dir).unwrap();
             view.map_folder_to_any_page(host, &dir).unwrap();
@@ -1134,7 +1134,7 @@ mod tests {
         std::fs::write(site.join("index.html"), "<!doctype html><title>cookies</title>").unwrap();
         let stage = Stage::new(320, 200).unwrap();
         let view = OffscreenWebView::new(&stage, 320, 200, &root.join("profile")).unwrap();
-        view.map_folder("westplay.cookies", &site).unwrap();
+        view.map_folder("cabinos.cookies", &site).unwrap();
         let pump = |seconds: f64| {
             let until = std::time::Instant::now() + std::time::Duration::from_secs_f64(seconds);
             while std::time::Instant::now() < until {
@@ -1142,14 +1142,14 @@ mod tests {
                 std::thread::sleep(std::time::Duration::from_millis(20));
             }
         };
-        view.navigate("https://westplay.cookies/index.html").unwrap();
+        view.navigate("https://cabinos.cookies/index.html").unwrap();
         pump(2.0);
         view.evaluate("document.cookie = 'signed=in; max-age=3600; path=/'").unwrap();
-        view.navigate("https://westplay.cookies/index.html").unwrap();
+        view.navigate("https://cabinos.cookies/index.html").unwrap();
         pump(1.5);
         assert!(view.evaluate("document.cookie").unwrap().contains("signed=in"), "the cookie wasn't kept");
         view.delete_cookies().unwrap();
-        view.navigate("https://westplay.cookies/index.html").unwrap();
+        view.navigate("https://cabinos.cookies/index.html").unwrap();
         pump(1.5);
         assert_eq!(view.evaluate("document.cookie").unwrap(), "\"\"", "a cookie outlived the sign-out");
     }
@@ -1250,7 +1250,7 @@ mod tests {
         let stage = Stage::new(320, 200).unwrap();
         let view = OffscreenWebView::new(&stage, 320, 200, &root.join("profile")).unwrap();
         view.set_muted(true).unwrap();
-        view.map_folder("westplay.speakers", &site).unwrap();
+        view.map_folder("cabinos.speakers", &site).unwrap();
         let pump = |seconds: f64| {
             let until = std::time::Instant::now() + std::time::Duration::from_secs_f64(seconds);
             while std::time::Instant::now() < until {
@@ -1258,7 +1258,7 @@ mod tests {
                 std::thread::sleep(std::time::Duration::from_millis(20));
             }
         };
-        view.navigate("https://westplay.speakers/index.html").unwrap();
+        view.navigate("https://cabinos.speakers/index.html").unwrap();
         pump(2.0);
         let mut heard = Vec::new();
         for id in ["a", "b", "a"] {
