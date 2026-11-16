@@ -20,6 +20,15 @@ export interface HostStatus {
   screenDrawing: boolean
   /** Whether the truck the player is in is one WestPlay shows in, as the plugin last saw (`null`: not known yet). */
   truckSupported: boolean | null
+  /** Current ETS2 truck identity; the raw licence plate never leaves the Rust host. */
+  truck: {
+    id: string
+    brandId: string
+    brand: string
+    name: string
+    fingerprint: string | null
+    identityConfident: boolean
+  } | null
   /** The coach the player drives: how many speakers its passengers' set plays through (`null`: a truck, no game,
    * or the coach's parts not read yet). */
   coachSpeakers: number | null
