@@ -1,4 +1,4 @@
-//! WestPlay's screen mod, mounted by the plugin itself (PLAN.md: the plugin mounts `westplay.scs` in every
+//! CabinOS's screen mod, mounted by the plugin itself (PLAN.md: the plugin mounts `westplay.scs` in every
 //! mode, never shown in the Mod Manager), through the game's own mount: the function that mounts one device
 //! from a request, as the game mounts its user folder with it. The archive goes into the mod pool, first. The
 //! game's functions are found in its code by what they are (`locate`), not where one version had them, so other
@@ -113,7 +113,7 @@ fn game_folder(game_id: &str) -> Option<&'static str> {
     }
 }
 
-/// Mounts WestPlay's mod into the game `game_id` (the SDK's), once a game process.
+/// Mounts CabinOS's mod into the game `game_id` (the SDK's), once a game process.
 ///
 /// # Safety
 /// On the game's main thread, from the plugin's init.
