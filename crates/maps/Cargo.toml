@@ -1,6 +1,6 @@
 [package]
-name = "westplay-maps"
-description = "WestPlay's map builder: one profile's map built in a process of its own, as WestPlay asks"
+name = "cabinos-maps"
+description = "CabinOS map builder: prepares an ETS2 profile map in a separate process"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
