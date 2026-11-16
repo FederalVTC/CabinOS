@@ -7,7 +7,7 @@ license.workspace = true
 publish.workspace = true
 
 [[bin]]
-name = "westplay-probe"
+name = "cabinos-probe"
 path = "src/main.rs"
 
 [dependencies]
