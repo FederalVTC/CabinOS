@@ -25,6 +25,8 @@ pub const FILE_NAME: &str = "cabinos.dll";
 const COPY_ARGUMENT: &str = "--cabinos-install-plugin";
 /// The same, to remove it and nothing else (uninstalling).
 const REMOVE_ARGUMENT: &str = "--cabinos-remove-plugin";
+/// The original WestPlay plugin cannot run beside CabinOS: both hook the same ETS2 screens.
+const LEGACY_PLUGIN: &str = "westplay.dll";
 
 /// Windows' errors for a file another program holds open (the game, its plugin loaded).
 const ERROR_SHARING_VIOLATION: i32 = 32;
@@ -53,6 +55,8 @@ pub enum InstallError {
     NeedsAdministrator,
     /// The player said no to Windows' administrator prompt.
     Declined,
+    /// The original WestPlay plugin is still installed and would conflict with CabinOS.
+    LegacyPluginPresent,
     Io(io::Error),
 }
 
@@ -62,6 +66,7 @@ impl std::fmt::Display for InstallError {
             Self::InUse => write!(f, "the game is running: close it to install the plugin"),
             Self::NeedsAdministrator => write!(f, "the game's folder needs administrator rights"),
             Self::Declined => write!(f, "administrator rights weren't given"),
+            Self::LegacyPluginPresent => write!(f, "WestPlay's plugin is still installed. Remove it from ETS2 before installing CabinOS; CabinOS will not overwrite it."),
             Self::Io(error) => write!(f, "{error}"),
         }
     }
@@ -82,7 +87,11 @@ impl From<io::Error> for InstallError {
 /// The plugin installed in `game`, against WestPlay's own (`ours`, the file WestPlay ships), with the probe beside
 /// it against the one beside ours (when WestPlay ships one: a development build may not have built it).
 pub fn state(game: &Game, ours: &Path) -> io::Result<State> {
-    let installed = match std::fs::read(game.plugins_dir().join(FILE_NAME)) {
+    let plugins = game.plugins_dir();
+    if plugins.join(LEGACY_PLUGIN).is_file() {
+        return Ok(State::Different);
+    }
+    let installed = match std::fs::read(plugins.join(FILE_NAME)) {
         Ok(bytes) => bytes,
         Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(State::Missing),
         Err(error) => return Err(error),
@@ -133,6 +142,9 @@ fn other_apps_in(plugins: &Path) -> Vec<&'static str> {
 
 /// Installs WestPlay's plugin (`ours`) in `game`: written beside the one there, then moved over it.
 pub fn install(game: &Game, ours: &Path) -> Result<PathBuf, InstallError> {
+    if game.plugins_dir().join(LEGACY_PLUGIN).is_file() {
+        return Err(InstallError::LegacyPluginPresent);
+    }
     copy_into(ours, &game.plugins_dir())
 }
 
@@ -296,6 +308,20 @@ mod tests {
         let game =
             Game { kind: Kind::Ets2, dir: root.join("game"), found_by: FoundBy::Chosen, version: None, dlcs: vec![] };
         (game, ours, root)
+    }
+
+    #[test]
+    fn refuses_to_install_beside_the_original_westplay_plugin() {
+        let (game, ours, root) = setup("legacy-westplay");
+        let plugins = game.plugins_dir();
+        std::fs::create_dir_all(&plugins).unwrap();
+        let legacy = plugins.join(LEGACY_PLUGIN);
+        std::fs::write(&legacy, b"original WestPlay plugin").unwrap();
+        assert_eq!(state(&game, &ours).unwrap(), State::Different);
+        assert!(matches!(install(&game, &ours), Err(InstallError::LegacyPluginPresent)));
+        assert_eq!(std::fs::read(&legacy).unwrap(), b"original WestPlay plugin");
+        assert!(!plugins.join(FILE_NAME).exists(), "CabinOS must not install beside the legacy plugin");
+        let _ = std::fs::remove_dir_all(root);
     }
 
     #[test]
