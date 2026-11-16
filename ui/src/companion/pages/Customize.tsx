@@ -12,12 +12,13 @@ import {
   removeIconSet,
   removeWallpaper,
 } from '../customize'
-import { Checking, Group, Note, Panel, Row, Tick } from '../room/parts'
+import { Button, Checking, Group, Note, Panel, Row, Tick } from '../room/parts'
 import { list } from '../onboarding/words'
 import { useWords } from '../room/room'
 import { GLOW, useScreenAt } from '../room/screen'
 import type { Settings } from '../useSettings'
 import type { PageProps } from './page'
+import { profilesAssign, profilesCreate, profilesDelete, profilesList, vehicleIdentity, type TruckProfile } from '../profiles'
 import type { CompanionWords } from './words'
 
 const STYLES: IconStyle[] = ['auto', 'light', 'dark']
@@ -99,6 +100,7 @@ export function Customize({ cw, settings, custom, refreshCustom }: PageProps) {
 
   return (
     <Panel place="page" title={w.title} sub={w.sub}>
+      <TruckProfiles status={arguments[0].status} />
       <Group title={w.wallpapers} place={4}>
         <div className="cz-wallpapers">
           {wallpapers.map((wallpaper) => (
@@ -191,6 +193,171 @@ export function Customize({ cw, settings, custom, refreshCustom }: PageProps) {
         {w.iconsNote.replace('{names}', names)} {w.looksNote}
       </p>
     </Panel>
+  )
+}
+
+
+/** Local per-truck profiles. A profile is only marked as matching; changing it never happens silently. */
+function TruckProfiles({ status }: { status: PageProps['status'] }) {
+  const words = useWords()
+  const spanish = words.locale.toLowerCase().startsWith('es')
+  const [profiles, setProfiles] = useState<TruckProfile[]>([])
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const truck = status?.game === 'ets2' && status.gameConnected && status.truck?.identityConfident
+    ? status.truck
+    : null
+
+  const labels = spanish ? {
+    title: 'Camiones y perfiles',
+    sub: 'Guarda una configuración independiente para cada camión.',
+    name: 'Nombre del perfil',
+    create: 'Crear perfil para el camión actual',
+    current: 'Camión detectado',
+    waiting: 'Conectá ETS2 y entrá en un camión compatible para asignar un perfil.',
+    assigned: 'Asignado a',
+    matches: 'Coincide con el camión actual',
+    assign: 'Asignar al camión actual',
+    unassigned: 'Sin camión asignado',
+    default: 'Perfil predeterminado',
+    remove: 'Eliminar',
+    empty: 'Todavía no hay perfiles personalizados.',
+    failed: 'No se pudieron cargar los perfiles.',
+    created: 'Perfil creado y guardado.',
+    assignedOk: 'Perfil asignado al camión.',
+    deleted: 'Perfil eliminado.',
+    confirm: '¿Eliminar este perfil? Esta acción no se puede deshacer.',
+  } : {
+    title: 'Trucks and profiles',
+    sub: 'Save an independent configuration for each truck.',
+    name: 'Profile name',
+    create: 'Create a profile for the current truck',
+    current: 'Detected truck',
+    waiting: 'Connect ETS2 and enter a supported truck to assign a profile.',
+    assigned: 'Assigned to',
+    matches: 'Matches the current truck',
+    assign: 'Assign to current truck',
+    unassigned: 'No truck assigned',
+    default: 'Default profile',
+    remove: 'Delete',
+    empty: 'No custom profiles yet.',
+    failed: 'Could not load profiles.',
+    created: 'Profile created and saved.',
+    assignedOk: 'Profile assigned to truck.',
+    deleted: 'Profile deleted.',
+    confirm: 'Delete this profile? This cannot be undone.',
+  }
+
+  const refresh = async () => {
+    try {
+      setProfiles(await profilesList())
+      setError(null)
+    } catch (e) {
+      setError(String(e))
+    }
+  }
+  useEffect(() => { void refresh() }, [])
+
+  const matchesTruck = (profile: TruckProfile) => {
+    if (!truck || !profile.vehicle) return false
+    const vehicle = profile.vehicle
+    if (truck.fingerprint && vehicle.fingerprint) return truck.fingerprint === vehicle.fingerprint
+    return truck.id === vehicle.modelId && truck.brandId === vehicle.brandId
+  }
+
+  const create = async () => {
+    if (!truck || !name.trim() || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await profilesCreate(name.trim(), vehicleIdentity(truck))
+      setName('')
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const assign = async (id: string) => {
+    if (!truck || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await profilesAssign(id, vehicleIdentity(truck))
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async (profile: TruckProfile) => {
+    if (busy || !window.confirm(labels.confirm)) return
+    setBusy(true)
+    setError(null)
+    try {
+      await profilesDelete(profile.id)
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Group title={labels.title} place={3}>
+      <div className="cz-profiles">
+        <p className="cz-profiles-sub">{labels.sub}</p>
+        {truck ? (
+          <div className="cz-truck-current">
+            <span>{labels.current}</span>
+            <b>{truck.brand} {truck.name}</b>
+          </div>
+        ) : (
+          <p className="cz-profiles-note">{labels.waiting}</p>
+        )}
+        {truck && (
+          <div className="cz-profile-create">
+            <input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={48}
+              placeholder={labels.name}
+              aria-label={labels.name}
+            />
+            <Button small busy={busy} disabled={!name.trim()} onClick={() => void create()}>{labels.create}</Button>
+          </div>
+        )}
+        {profiles.length === 0 && !error && <p className="cz-profiles-note">{labels.empty}</p>}
+        {profiles.map((profile) => {
+          const matches = matchesTruck(profile)
+          const vehicle = profile.vehicle
+          return (
+            <div className="cz-profile-card" key={profile.id}>
+              <div className="cz-profile-info">
+                <b>{profile.name}</b>
+                <span>{profile.id === 'default' ? labels.default : vehicle ? `${labels.assigned}: ${vehicle.brand} ${vehicle.model}` : labels.unassigned}</span>
+                {matches && <i>{labels.matches}</i>}
+              </div>
+              <div className="cz-profile-actions">
+                {truck && !matches && profile.id !== 'default' && (
+                  <Button small busy={busy} onClick={() => void assign(profile.id)}>{labels.assign}</Button>
+                )}
+                {profile.id !== 'default' && (
+                  <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => void remove(profile)}>{labels.remove}</button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+        {error && <p className="cz-profiles-error">{error || labels.failed}</p>}
+      </div>
+    </Group>
   )
 }
 
