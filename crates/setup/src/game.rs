@@ -175,6 +175,12 @@ impl Game {
         if !dir.join("base.scs").is_file() {
             return None;
         }
+        // A folder with the ATS executable is not accepted as ETS2 merely because a copy of
+        // eurotrucks2.exe was placed beside it. A Steam ETS2 manifest is the only explicit
+        // listing that can disambiguate a folder containing both executables.
+        if dir.join(Kind::Ats.executable()).is_file() && listed != Some(Kind::Ets2) {
+            return None;
+        }
         let present: Vec<Kind> = Kind::ALL.into_iter().filter(|kind| dir.join(kind.executable()).is_file()).collect();
         let kind = match (listed, &present[..]) {
             (Some(listed), _) if present.contains(&listed) => listed,
