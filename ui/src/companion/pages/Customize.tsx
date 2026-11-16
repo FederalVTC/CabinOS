@@ -18,7 +18,7 @@ import { useWords } from '../room/room'
 import { GLOW, useScreenAt } from '../room/screen'
 import type { Settings } from '../useSettings'
 import type { PageProps } from './page'
-import { profilesAssign, profilesCreate, profilesDelete, profilesList, vehicleIdentity, type TruckProfile } from '../profiles'
+import { profilesAssign, profilesCreate, profilesDelete, profilesList, profilesUpdate, vehicleIdentity, type TruckProfile } from '../profiles'
 import type { CompanionWords } from './words'
 
 const STYLES: IconStyle[] = ['auto', 'light', 'dark']
@@ -203,6 +203,8 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
   const spanish = words.locale.toLowerCase().startsWith('es')
   const [profiles, setProfiles] = useState<TruckProfile[]>([])
   const [name, setName] = useState('')
+  const [editing, setEditing] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const truck = status?.game === 'ets2' && status.gameConnected && status.truck?.identityConfident
@@ -227,6 +229,9 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
     created: 'Perfil creado y guardado.',
     assignedOk: 'Perfil asignado al camión.',
     deleted: 'Perfil eliminado.',
+    edit: 'Editar',
+    save: 'Guardar',
+    cancel: 'Cancelar',
     confirm: '¿Eliminar este perfil? Esta acción no se puede deshacer.',
   } : {
     title: 'Trucks and profiles',
@@ -246,6 +251,9 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
     created: 'Profile created and saved.',
     assignedOk: 'Profile assigned to truck.',
     deleted: 'Profile deleted.',
+    edit: 'Edit',
+    save: 'Save',
+    cancel: 'Cancel',
     confirm: 'Delete this profile? This cannot be undone.',
   }
 
@@ -287,6 +295,21 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
     setError(null)
     try {
       await profilesAssign(id, vehicleIdentity(truck))
+      await refresh()
+    } catch (e) {
+      setError(String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const saveName = async (profile: TruckProfile) => {
+    if (!editName.trim() || busy) return
+    setBusy(true)
+    setError(null)
+    try {
+      await profilesUpdate({ ...profile, name: editName.trim() })
+      setEditing(null)
       await refresh()
     } catch (e) {
       setError(String(e))
@@ -340,16 +363,36 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
           return (
             <div className="cz-profile-card" key={profile.id}>
               <div className="cz-profile-info">
-                <b>{profile.name}</b>
+                {editing === profile.id ? (
+                  <input
+                    className="cz-profile-rename"
+                    value={editName}
+                    maxLength={48}
+                    onChange={(event) => setEditName(event.target.value)}
+                    aria-label={labels.name}
+                  />
+                ) : <b>{profile.name}</b>}
                 <span>{profile.id === 'default' ? labels.default : vehicle ? `${labels.assigned}: ${vehicle.brand} ${vehicle.model}` : labels.unassigned}</span>
                 {matches && <i>{labels.matches}</i>}
               </div>
               <div className="cz-profile-actions">
-                {truck && !matches && profile.id !== 'default' && (
-                  <Button small busy={busy} onClick={() => void assign(profile.id)}>{labels.assign}</Button>
-                )}
-                {profile.id !== 'default' && (
-                  <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => void remove(profile)}>{labels.remove}</button>
+                {editing === profile.id ? (
+                  <>
+                    <Button small busy={busy} disabled={!editName.trim()} onClick={() => void saveName(profile)}>{labels.save}</Button>
+                    <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => setEditing(null)}>{labels.cancel}</button>
+                  </>
+                ) : (
+                  <>
+                    {truck && !matches && profile.id !== 'default' && (
+                      <Button small busy={busy} onClick={() => void assign(profile.id)}>{labels.assign}</Button>
+                    )}
+                    {profile.id !== 'default' && (
+                      <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => { setEditing(profile.id); setEditName(profile.name) }}>{labels.edit}</button>
+                    )}
+                    {profile.id !== 'default' && (
+                      <button type="button" className="cz-profile-delete" disabled={busy} onClick={() => void remove(profile)}>{labels.remove}</button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
