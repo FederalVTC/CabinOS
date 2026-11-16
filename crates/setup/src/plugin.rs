@@ -20,11 +20,11 @@ use windows::core::{HSTRING, PCWSTR, w};
 use crate::game::Game;
 
 /// The plugin's file, in the game's plugins folder.
-pub const FILE_NAME: &str = "westplay.dll";
+pub const FILE_NAME: &str = "cabinos.dll";
 /// The argument WestPlay is started with, as administrator, to copy the plugin and nothing else.
-const COPY_ARGUMENT: &str = "--westplay-install-plugin";
+const COPY_ARGUMENT: &str = "--cabinos-install-plugin";
 /// The same, to remove it and nothing else (uninstalling).
-const REMOVE_ARGUMENT: &str = "--westplay-remove-plugin";
+const REMOVE_ARGUMENT: &str = "--cabinos-remove-plugin";
 
 /// Windows' errors for a file another program holds open (the game, its plugin loaded).
 const ERROR_SHARING_VIOLATION: i32 = 32;
@@ -353,9 +353,9 @@ mod tests {
         let (game, ours, root) = setup("admin");
         let plugins = game.plugins_dir();
         let args = |argument: &str| {
-            vec!["westplay.exe".into(), argument.into(), ours.display().to_string(), plugins.display().to_string()]
+            vec!["cabinos.exe".into(), argument.into(), ours.display().to_string(), plugins.display().to_string()]
         };
-        assert_eq!(run_as_administrator_copy(&["westplay.exe".into()]), None);
+        assert_eq!(run_as_administrator_copy(&["cabinos.exe".into()]), None);
         assert_eq!(run_as_administrator_copy(&args("--something-else")), None);
         assert_eq!(run_as_administrator_copy(&args(COPY_ARGUMENT)), Some(0));
         assert_eq!(state(&game, &ours).unwrap(), State::Current);
