@@ -93,7 +93,7 @@ pub fn map_builder_file(app: &AppHandle) -> Option<PathBuf> {
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GameInfo {
-    /// Which game: `ets2` or `ats`.
+    /// The supported game: `ets2` (ATS identifiers remain only for reading inherited metadata).
     kind: Kind,
     dir: PathBuf,
     /// `steam`, `installed` (another store's, or SCS's own installer) or `chosen`.
@@ -126,8 +126,7 @@ impl From<&Game> for GameInfo {
 pub struct SetupState {
     /// The onboarding was gone through: the companion opens on its own pages.
     finished: bool,
-    /// The game CabinOS is set up in, if it is (and it's still there): ETS2's, else the one set up, until the
-    /// companion shows each game set up (ATS support, phase 1).
+    /// The ETS2 installation CabinOS is set up in, if it is (and it's still there).
     game: Option<GameInfo>,
     /// Every game CabinOS is set up in (still there).
     games: Vec<GameInfo>,
@@ -137,7 +136,7 @@ pub struct SetupState {
     updated: bool,
     /// Those games ([`Self::updated`]), each to put the new plugin and mod into.
     outdated: Vec<GameInfo>,
-    /// Every install of either game found on the PC, ETS2's first.
+    /// Every ETS2 installation found on the PC.
     found: Vec<GameInfo>,
     /// The game is running (setup installs into it and builds its map while it's closed).
     game_running: bool,
@@ -173,8 +172,8 @@ pub async fn setup_state(store: State<'_, SetupStore>) -> Result<SetupState, Str
     .await
 }
 
-/// The onboarding speaks the game's language, as CabinOS does in the cab (its words, and the map's place
-/// names): the one a game was last set to (the `config.cfg` written last, of either game), or one set for
+/// The onboarding speaks the ETS2 language, as CabinOS does in the cab (its words, and the map's place
+/// names): the language in ETS2's `config.cfg`, or one set for
 /// trying it out (`WESTPLAY_LANGUAGE`). A player who never started a game has neither: the onboarding then
 /// follows Windows'.
 fn onboarding_language() -> Option<String> {
@@ -646,7 +645,7 @@ pub async fn uninstall_from_game(administrator: bool, store: State<'_, SetupStor
         if game::running() {
             return Err("gameRunning".into());
         }
-        // Out of each game set up; with none (or they're gone), ETS2's profiles all the same, as before.
+        // Out of the ETS2 installation set up; with none (or it is gone), ETS2's profiles all the same, as before.
         let set_up = inner.record().games();
         let kinds: Vec<Kind> =
             if set_up.is_empty() { vec![Kind::Ets2] } else { set_up.iter().map(|game| game.kind).collect() };
