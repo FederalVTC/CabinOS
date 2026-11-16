@@ -43,6 +43,27 @@ El trabajo se organiza en etapas:
 
 No se publicarán instaladores hasta contar con pruebas de compilación, firma/configuración de actualizaciones y validación en el juego.
 
+## Compilar en Windows
+
+Requisitos de desarrollo:
+
+- Windows 10/11 de 64 bits.
+- Node.js 24 y npm.
+- Rust stable con el target MSVC x64 y las herramientas de compilación de Visual Studio.
+- WebView2 Runtime.
+
+Desde la raíz del repositorio:
+
+```powershell
+npm ci
+npm ci --prefix ui
+npm test --prefix ui
+cargo test --workspace --locked
+npm run build
+```
+
+El comando de compilación prepara primero la interfaz y los componentes nativos propios de CabinOS (plugin ETS2, detector DirectX y constructor de mapas). El instalador se habilitará cuando la compilación y el empaquetado de Windows estén validados.
+
 ## Licencia y atribución
 
 CabinOS se desarrolla a partir de [WestPlay](https://github.com/enes-less/WestPlay), proyecto publicado bajo **GNU General Public License v3.0 o posterior (GPL-3.0-or-later)**. Se conservan la licencia original y los avisos de terceros aplicables. Los cambios y la nueva identidad de CabinOS no implican afiliación, patrocinio ni aprobación por parte del autor de WestPlay ni de SCS Software.
