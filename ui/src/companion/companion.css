@@ -909,3 +909,117 @@ button {
 .cp-profile-entry {
   display: contents;
 }
+
+
+/* ---------- CabinOS per-truck profiles ---------- */
+.cz-profiles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.cz-profiles-sub,
+.cz-profiles-note {
+  color: var(--text-dim);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.cz-truck-current {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgb(53 217 255 / 0.22);
+  border-radius: 12px;
+  background: rgb(53 217 255 / 0.055);
+  font-size: 12px;
+}
+.cz-truck-current span,
+.cz-profile-info span {
+  color: var(--text-dim);
+}
+.cz-truck-current b {
+  color: var(--text);
+  font-weight: 600;
+}
+.cz-profile-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cz-profile-create input {
+  min-width: 150px;
+  flex: 1 1 160px;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: none;
+  background: rgb(255 255 255 / 0.045);
+  color: var(--text);
+  font: inherit;
+  font-size: 12.5px;
+}
+.cz-profile-create input:focus {
+  border-color: rgb(53 217 255 / 0.7);
+  box-shadow: 0 0 0 2px rgb(53 217 255 / 0.1);
+}
+.cz-profile-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.025);
+}
+.cz-profile-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+.cz-profile-info b {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cz-profile-info span,
+.cz-profile-info i {
+  color: var(--text-dim);
+  font-size: 11.5px;
+  font-style: normal;
+}
+.cz-profile-info i {
+  color: #35d9ff;
+}
+.cz-profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.cz-profile-delete {
+  padding: 5px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--red);
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.cz-profile-delete:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.cz-profiles-error {
+  color: var(--red);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
