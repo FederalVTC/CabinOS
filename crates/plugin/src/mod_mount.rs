@@ -146,7 +146,7 @@ pub unsafe fn mount(game_id: &str) {
     // open, so it lasts as long as the process).
     unsafe {
         let name: Vec<u16> =
-            format!("Local\\WestPlay.ModMounted.{}", GetCurrentProcessId()).encode_utf16().chain([0]).collect();
+            format!("Local\\CabinOS.ModMounted.{}", GetCurrentProcessId()).encode_utf16().chain([0]).collect();
         if CreateMutexW(None, false, PCWSTR(name.as_ptr())).is_err() || GetLastError() == ERROR_ALREADY_EXISTS {
             log!("mod mount: already mounted in this game process");
             return;
