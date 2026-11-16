@@ -2,7 +2,7 @@ import type { AppIconRole } from './icons'
 
 /**
  * The player's own wallpapers and icon sets (the companion's Customize), as the app lists them
- * (`westplay_host::customize`). Their files' paths are relative to WestPlay's `customize` folder, served to
+ * (`westplay_host::customize`). Their files' paths are relative to CabinOS's `customize` folder, served to
  * the cabin page at `https://cabinos.customize/` and to the companion at its own address.
  */
 export interface Customizations {
@@ -21,7 +21,7 @@ export interface CustomWallpaper {
 export interface IconSet {
   name: string
   /** The icons it has, by role, for a light screen and a dark one (the same file for both when it's one
-   * icon); a role (or a look) it leaves out keeps WestPlay's own icon. */
+   * icon); a role (or a look) it leaves out keeps CabinOS's own icon. */
   icons: Partial<Record<AppIconRole, { light: string | null; dark: string | null }>>
 }
 
@@ -32,7 +32,7 @@ export const NO_CUSTOMIZATIONS: Customizations = { wallpapers: [], iconSets: [] 
 
 /** Where the cabin page finds the player's files (the host maps the folder there). */
 export const CABIN_FILES = 'https://cabinos.customize/'
-/** Where the companion finds them (the app's `westplay-customize` scheme, as WebView2 addresses it). */
+/** Where the companion finds them (the app's `cabinos-customize` scheme, as WebView2 addresses it). */
 export const COMPANION_FILES = 'http://cabinos-customize.localhost/'
 
 /** A file's address at `base`: each part of its path encoded (names have spaces, brackets, any letters). */
