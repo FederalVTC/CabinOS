@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-/** A browser's storage holding what an earlier WestPlay saved (and the page around it, outside WestPlay). */
+/** A browser's isolated CabinOS storage, separate from any previous WestPlay installation. */
 function savedStorage(state: unknown, version = 1) {
   vi.stubGlobal('window', {})
   vi.stubGlobal('location', { search: '' })
-  const items = new Map([['westplay.cabin', JSON.stringify({ state, version })]])
+  const items = new Map([['cabinos.cabin', JSON.stringify({ state, version })]])
   return {
     getItem: (key: string) => items.get(key) ?? null,
     setItem: (key: string, value: string) => void items.set(key, value),
@@ -43,7 +43,7 @@ describe('the saved Settings choices', () => {
     expect(useCabin.getState().albumArt).toBe(true)
   })
 
-  it('are all on when nothing was saved (an earlier WestPlay)', async () => {
+  it('are all on when nothing was saved (a fresh CabinOS profile)', async () => {
     vi.stubGlobal('localStorage', savedStorage({ appearanceMode: 'dark' }))
     const { useCabin } = await import('./store')
     expect(useCabin.getState().dashboardWidgets).toEqual({ nowPlaying: true, destination: true, weather: true })
