@@ -25,6 +25,9 @@ const FIRST_LOOK: Duration = Duration::from_secs(30);
 const EVERY: Duration = Duration::from_secs(6 * 60 * 60);
 /// After a look that couldn't be made (no network, GitHub not answering, no release yet): again this soon.
 const RETRY: Duration = Duration::from_secs(30 * 60);
+/// CabinOS must never query WestPlay's inherited release feed or install an upstream build.
+/// Enable only after CabinOS has its own release endpoint and signing key.
+const UPDATES_ENABLED: bool = false;
 
 /// The update found, if one was.
 #[derive(Default)]
@@ -61,7 +64,7 @@ struct Progress {
 
 /// Looks for updates in the background, from now on: a little after the start, then every few hours.
 pub fn watch(app: &AppHandle) {
-    if cfg!(debug_assertions) {
+    if !UPDATES_ENABLED || cfg!(debug_assertions) {
         return;
     }
     let app = app.clone();
@@ -80,6 +83,9 @@ pub fn watch(app: &AppHandle) {
 /// Looks for an update: one found is kept for [`install_update`] and told to the companion (`update-found`).
 /// `Err` when the look couldn't be made.
 async fn look(app: &AppHandle) -> Result<Option<Offer>, ()> {
+    if !UPDATES_ENABLED {
+        return Ok(None);
+    }
     // The host stopped before the installer runs, as when WestPlay quits: the installer replaces its files.
     let handle = app.clone();
     let updater = match app.updater_builder().on_before_exit(move || crate::stop_host(&handle)).build() {
@@ -116,7 +122,7 @@ pub fn update_offer(updates: State<Updates>) -> Option<Offer> {
 /// Looks for an update now (the companion, as it opens, and its About page). A development build has none.
 #[tauri::command]
 pub async fn look_for_update(app: AppHandle) -> Option<Offer> {
-    if cfg!(debug_assertions) {
+    if !UPDATES_ENABLED || cfg!(debug_assertions) {
         return None;
     }
     look(&app).await.ok().flatten()
@@ -127,6 +133,9 @@ pub async fn look_for_update(app: AppHandle) -> Option<Offer> {
 /// the old WestPlay's. Comes back only if it couldn't be installed.
 #[tauri::command]
 pub async fn install_update(app: AppHandle) -> Result<(), String> {
+    if !UPDATES_ENABLED {
+        return Err("Las actualizaciones de CabinOS se habilitarán cuando exista un canal propio y firmado.".into());
+    }
     if westplay_setup::game::running() {
         return Err("gameRunning".into());
     }
