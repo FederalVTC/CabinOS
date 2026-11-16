@@ -35,7 +35,7 @@ const OLD_LOG: &str = "app.old.log";
 
 /// Where the log is kept: `Documents\WestPlay\logs`, none if Documents can't be found.
 pub fn dir() -> Option<PathBuf> {
-    Some(westplay_setup::places::documents()?.join("WestPlay").join("logs"))
+    Some(westplay_setup::places::documents()?.join("CabinOS").join("logs"))
 }
 
 /// Where the log is kept when Documents refuses it: WestPlay's own data folder (`%LOCALAPPDATA%\app.westplay`,
@@ -43,7 +43,7 @@ pub fn dir() -> Option<PathBuf> {
 /// player's ransomware protection (Windows Security's Controlled folder access, 2026-10-24) let the game write
 /// its `plugin.log` in Documents but not WestPlay: there was no `app.log`, and nothing said why.
 fn fallback_dir() -> Option<PathBuf> {
-    Some(PathBuf::from(std::env::var_os("LOCALAPPDATA")?).join("app.westplay").join("logs"))
+    Some(PathBuf::from(std::env::var_os("LOCALAPPDATA")?).join("com.elabuelostreaming.cabinos").join("logs"))
 }
 
 /// Where this run's `app.log` is (the companion's About shows it); `None` if it couldn't be made anywhere.
@@ -62,7 +62,7 @@ pub fn init() {
     let handle = file.as_raw_handle() as isize;
     *FILE.lock().unwrap_or_else(|e| e.into_inner()) = Some(file);
     let _ = PLACE.set(path);
-    write(&format!("WestPlay {}", env!("CARGO_PKG_VERSION")));
+    write(&format!("CabinOS {}", env!("CARGO_PKG_VERSION")));
     if let Some(refused) = refused {
         write(&format!("the log is kept here, as {refused}"));
     }
