@@ -18,7 +18,7 @@ import { useWords } from '../room/room'
 import { GLOW, useScreenAt } from '../room/screen'
 import type { Settings } from '../useSettings'
 import type { PageProps } from './page'
-import { profilesAssign, profilesCreate, profilesDelete, profilesList, profilesUpdate, vehicleIdentity, type TruckProfile } from '../profiles'
+import { matchesVehicle, profilesAssign, profilesCreate, profilesDelete, profilesList, profilesUpdate, vehicleIdentity, type TruckProfile } from '../profiles'
 import type { CompanionWords } from './words'
 
 const STYLES: IconStyle[] = ['auto', 'light', 'dark']
@@ -267,12 +267,8 @@ function TruckProfiles({ status }: { status: PageProps['status'] }) {
   }
   useEffect(() => { void refresh() }, [])
 
-  const matchesTruck = (profile: TruckProfile) => {
-    if (!truck || !profile.vehicle) return false
-    const vehicle = profile.vehicle
-    if (truck.fingerprint && vehicle.fingerprint) return truck.fingerprint === vehicle.fingerprint
-    return truck.id === vehicle.modelId && truck.brandId === vehicle.brandId
-  }
+  const matchesTruck = (profile: TruckProfile) =>
+    truck ? matchesVehicle(profile, vehicleIdentity(truck)) : false
 
   const create = async () => {
     if (!truck || !name.trim() || busy) return
