@@ -66,7 +66,7 @@ impl std::fmt::Display for InstallError {
             Self::InUse => write!(f, "the game is running: close it to install the plugin"),
             Self::NeedsAdministrator => write!(f, "the game's folder needs administrator rights"),
             Self::Declined => write!(f, "administrator rights weren't given"),
-            Self::LegacyPluginPresent => write!(f, "WestPlay's plugin is still installed. Remove it from ETS2 before installing CabinOS; CabinOS will not overwrite it."),
+            Self::LegacyPluginPresent => write!(f, "El complemento original de WestPlay sigue instalado. Quitalo de ETS2 antes de instalar CabinOS; CabinOS no lo sobrescribirá."),
             Self::Io(error) => write!(f, "{error}"),
         }
     }
