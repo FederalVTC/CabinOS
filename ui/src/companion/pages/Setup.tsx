@@ -5,6 +5,7 @@ import { ownName } from '../languages'
 import { GLOW, useScreen, useScreenAt } from '../room/screen'
 import { checkGame, GAME_KINDS, GAME_NAMES, type GameInfo, type InstallReport, installIntoGame } from '../setup'
 import { allChecked, type PageProps, useGameCheck } from './page'
+import { profilesAssign, profilesCreate, profilesDelete, profilesList, vehicleIdentity, type TruckProfile } from '../profiles'
 
 /**
  * Where WestPlay is installed and how to put it right: each game it's in (ETS2's, ATS's), the plugin as it is
@@ -23,6 +24,61 @@ export function Setup(props: PageProps) {
   // What reinstalling did in each game, by its folder.
   const [reports, setReports] = useState<Record<string, InstallReport>>({})
   const [installError, setInstallError] = useState<string | null>(null)
+  const [profiles, setProfiles] = useState<TruckProfile[]>([])
+  const [profileName, setProfileName] = useState('')
+  const [profilesBusy, setProfilesBusy] = useState(false)
+  const [profileError, setProfileError] = useState<string | null>(null)
+  const truck = props.status?.truck ?? null
+  const currentVehicle = truck ? vehicleIdentity(truck) : null
+  useEffect(() => {
+    profilesList().then(setProfiles).catch((error: unknown) => setProfileError(String(error)))
+  }, [])
+  const refreshProfiles = async () => setProfiles(await profilesList())
+  const createProfile = async () => {
+    if (!profileName.trim()) return
+    setProfilesBusy(true)
+    setProfileError(null)
+    try {
+      await profilesCreate(profileName, currentVehicle)
+      setProfileName('')
+      await refreshProfiles()
+    } catch (error) {
+      setProfileError(String(error))
+    } finally {
+      setProfilesBusy(false)
+    }
+  }
+  const assignProfile = async (id: string) => {
+    if (!currentVehicle) return
+    setProfilesBusy(true)
+    setProfileError(null)
+    try {
+      await profilesAssign(id, currentVehicle)
+      await refreshProfiles()
+    } catch (error) {
+      setProfileError(String(error))
+    } finally {
+      setProfilesBusy(false)
+    }
+  }
+  const deleteProfile = async (id: string) => {
+    if (!window.confirm('¿Eliminar este perfil de CabinOS?')) return
+    setProfilesBusy(true)
+    setProfileError(null)
+    try {
+      await profilesDelete(id)
+      await refreshProfiles()
+    } catch (error) {
+      setProfileError(String(error))
+    } finally {
+      setProfilesBusy(false)
+    }
+  }
+  const exactMatches = truck?.fingerprint
+    ? profiles.filter((profile) => profile.vehicle?.fingerprint === truck.fingerprint)
+    : []
+  const modelMatches = truck ? profiles.filter((profile) => profile.vehicle?.modelId === truck.id) : []
+  const activeProfile = exactMatches.length === 1 ? exactMatches[0] : exactMatches.length === 0 && modelMatches.length === 1 ? modelMatches[0] : null
   const games = setup.games
   const checkedAll = allChecked(props)
   const done = games.length > 0 && games.every((game) => reports[game.dir]?.done)
@@ -99,6 +155,44 @@ export function Setup(props: PageProps) {
         )
       }
     >
+      <Group title="Camiones y perfiles" place={3}>
+        <Row
+          title="Camión detectado"
+          detail={truck ? `${truck.brand} ${truck.name} · ${truck.id}` : 'Abre ETS2 y entra en la cabina para detectar el camión.'}
+          value={activeProfile ? activeProfile.name : truck ? 'Sin perfil asignado' : 'Desconectado'}
+        />
+        {truck && !truck.identityConfident && (
+          <Note tone="calm">No hay una identificación única disponible. CabinOS usará el modelo y evitará cambiar de perfil si encuentra más de una coincidencia.</Note>
+        )}
+        <div className="cp-profile-create">
+          <input
+            aria-label="Nombre del perfil"
+            value={profileName}
+            onChange={(event) => setProfileName(event.target.value)}
+            placeholder="Nombre del perfil"
+            maxLength={48}
+          />
+          <Button onClick={createProfile} busy={profilesBusy} disabled={!profileName.trim()}>
+            Crear perfil{truck ? ' para este camión' : ''}
+          </Button>
+        </div>
+        {profiles.map((profile) => (
+          <div className="cp-profile-entry" key={profile.id}>
+            <Row
+              title={profile.name}
+              detail={profile.vehicle ? `${profile.vehicle.brand} ${profile.vehicle.model} · ${profile.vehicle.modelId}` : 'Perfil predeterminado o sin camión asignado'}
+              value={activeProfile?.id === profile.id ? 'En uso' : profile.id === 'default' ? 'Predeterminado' : undefined}
+            />
+            {truck && profile.id !== 'default' && activeProfile?.id !== profile.id && (
+              <Row title="Asignar camión actual a este perfil" link onClick={profilesBusy ? undefined : () => void assignProfile(profile.id)} />
+            )}
+            {profile.id !== 'default' && (
+              <Row title="Eliminar perfil" danger link onClick={profilesBusy ? undefined : () => void deleteProfile(profile.id)} />
+            )}
+          </div>
+        ))}
+      </Group>
+      {profileError && <Note tone="bad">{profileError}</Note>}
       {games.map((game, at) => (
         <GameSetUp
           key={game.dir}
