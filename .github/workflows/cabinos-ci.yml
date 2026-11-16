@@ -59,3 +59,11 @@ jobs:
 
       - name: Build CabinOS desktop and native release components
         run: npm run build
+
+      - name: Upload CabinOS Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: CabinOS-Windows-Installer
+          path: target/release/bundle/nsis/*.exe
+          if-no-files-found: error
+          retention-days: 14
