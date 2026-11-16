@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchesVehicle, profileForVehicle, type TruckProfile, type VehicleIdentity } from './profiles'
+import { matchesVehicle, profileForVehicle, type TruckProfile, type VehicleIdentity } from '../shared/profiles'
 
 const truck = (overrides: Partial<VehicleIdentity> = {}): VehicleIdentity => ({
   modelId: 'vehicle.scania.s_2016',
