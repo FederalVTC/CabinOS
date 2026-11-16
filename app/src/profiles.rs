@@ -370,6 +370,31 @@ mod tests {
     }
 
     #[test]
+    fn active_truck_lookup_requires_one_confident_profile() {
+        let dir = std::env::temp_dir().join(format!("cabinos-profile-match-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        let store = Profiles::load(&dir).unwrap();
+        let vehicle = VehicleIdentity {
+            model_id: "vehicle.scania.s_2016".into(),
+            brand_id: "scania".into(),
+            brand: "Scania".into(),
+            model: "S".into(),
+            fingerprint: Some("0123456789abcdef".into()),
+        };
+        let first = TruckProfile::new("p-one".into(), "Mi Scania".into(), Some(vehicle.clone()), now());
+        store.write(&first).unwrap();
+        assert_eq!(store.for_vehicle(&vehicle).unwrap().unwrap().id, "p-one");
+
+        let without_fingerprint = VehicleIdentity { fingerprint: None, ..vehicle.clone() };
+        assert!(store.for_vehicle(&without_fingerprint).unwrap().is_none());
+
+        let second = TruckProfile::new("p-two".into(), "Otro Scania".into(), Some(vehicle.clone()), now());
+        store.write(&second).unwrap();
+        assert!(store.for_vehicle(&vehicle).unwrap().is_none());
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
     fn profile_ids_cannot_escape_the_profiles_folder() {
         assert!(valid_id("p-123-456"));
         assert!(!valid_id("../settings"));
