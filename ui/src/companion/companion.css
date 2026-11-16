@@ -877,13 +877,15 @@ button {
 
 
 /* CabinOS per-truck profile manager */
-.cp-profile-create {
+.cp-profile-create,
+.cp-profile-edit {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
 }
-.cp-profile-create input {
+.cp-profile-create input,
+.cp-profile-edit input {
   min-width: 0;
   flex: 1;
   height: 38px;
@@ -895,11 +897,13 @@ button {
   color: var(--text);
   font: inherit;
 }
-.cp-profile-create input:focus {
+.cp-profile-create input:focus,
+.cp-profile-edit input:focus {
   border-color: rgb(53 217 255 / 0.7);
   box-shadow: 0 0 0 2px rgb(53 217 255 / 0.12);
 }
-.cp-profile-create input::placeholder {
+.cp-profile-create input::placeholder,
+.cp-profile-edit input::placeholder {
   color: var(--text-faint);
 }
 .cp-profile-entry {
