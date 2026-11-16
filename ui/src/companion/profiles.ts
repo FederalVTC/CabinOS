@@ -1,31 +1,7 @@
 import { call } from './bridge'
 
-export interface VehicleIdentity {
-  modelId: string
-  brandId: string
-  brand: string
-  model: string
-  fingerprint: string | null
-}
-
-export interface ProfileAppearance {
-  theme: string
-  wallpaper: string | null
-  accentColor: string
-}
-
-export interface TruckProfile {
-  schemaVersion: number
-  id: string
-  name: string
-  vehicle: VehicleIdentity | null
-  appearance: ProfileAppearance
-  applications: unknown[]
-  shortcuts: unknown[]
-  layout: Record<string, unknown>
-  createdAt: number
-  updatedAt: number
-}
+import type { TruckProfile, VehicleIdentity } from '../shared/profiles'
+export type { TruckProfile, VehicleIdentity, ProfileAppearance } from '../shared/profiles'
 
 export const profilesList = () => call<TruckProfile[]>('profiles_list')
 export const profilesCreate = (name: string, vehicle: VehicleIdentity | null) =>
