@@ -1,6 +1,5 @@
-//! Finding the games: every install of Euro Truck Simulator 2 and American Truck Simulator on the PC (Steam's,
-//! in any of its libraries, and others Windows lists as installed), each with its version (its executable's)
-//! and its DLCs. One WestPlay for both (owner 2026-10-28): what it does in one, it does in the other.
+//! Finding Euro Truck Simulator 2 installs on the PC (Steam's libraries and other Windows-registered installs),
+//! with each install's executable version and DLCs. CabinOS deliberately supports ETS2 only.
 
 use std::fmt;
 use std::path::{Path, PathBuf};
@@ -12,8 +11,7 @@ use windows::core::{HSTRING, w};
 
 use crate::{places, vdf};
 
-/// Which of SCS's truck games: they share an engine, a plugin SDK and their files' formats, and differ in what
-/// they're called, where they live, and their map.
+/// Game identifiers retained for reading inherited metadata. CabinOS only discovers and accepts ETS2.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Kind {
@@ -22,7 +20,7 @@ pub enum Kind {
 }
 
 impl Kind {
-    pub const ALL: [Kind; 2] = [Kind::Ets2, Kind::Ats];
+    pub const ALL: [Kind; 1] = [Kind::Ets2];
 
     /// Its name: its folder's in Documents and in a Steam library, and Windows' list of programs'.
     pub fn name(self) -> &'static str {
@@ -198,13 +196,13 @@ impl Game {
         Some(Self { kind, dir: dir.to_path_buf(), found_by, version, dlcs })
     }
 
-    /// The game in `dir`, found as [`find`] finds it (Steam's, or listed as installed) or else as chosen.
+    /// The ETS2 install in `dir`, found as [`find`] finds it (Steam's, or listed as installed) or else as chosen.
     pub fn recognise(dir: &Path) -> Option<Self> {
         let mut found = Kind::ALL.into_iter().flat_map(find);
         found.find(|game| same_folder(&game.dir, dir)).or_else(|| Self::at(dir, FoundBy::Chosen))
     }
 
-    /// Whether WestPlay has been tried with this version of the game ([`Kind::tested_versions`]).
+    /// Whether CabinOS has been tried with this ETS2 version ([`Kind::tested_versions`]).
     pub fn tested(&self) -> bool {
         self.version.is_some_and(|version| self.kind.tested_versions().iter().any(|pattern| version.matches(pattern)))
     }
@@ -232,6 +230,10 @@ impl Game {
 /// Every install of the game `kind` found on the PC: Steam's first (in each of its libraries), then others
 /// Windows lists as installed. Each folder once.
 pub fn find(kind: Kind) -> Vec<Game> {
+    // Keep the boundary explicit even if a future caller passes an inherited ATS identifier.
+    if kind != Kind::Ets2 {
+        return Vec::new();
+    }
     let mut found: Vec<Game> = Vec::new();
     let mut add = |game: Option<Game>| {
         if let Some(game) = game
@@ -261,7 +263,7 @@ pub fn find(kind: Kind) -> Vec<Game> {
     found
 }
 
-/// Whether a game WestPlay works with is running (either, any install of it).
+/// Whether Euro Truck Simulator 2 is running (any install).
 pub fn running() -> bool {
     running_processes(&Kind::ALL.map(Kind::process))
 }
@@ -375,7 +377,7 @@ mod tests {
     /// Which game a folder holds: the listed one if its executable is there, else the one whose executable is;
     /// with both and no listing, the one whose base map is in its archives.
     #[test]
-    fn tells_which_game_a_folder_is_with_both_executables() {
+    fn accepts_only_ets2_even_when_an_ats_folder_contains_a_copied_ets2_executable() {
         let root = std::env::temp_dir().join(format!("westplay-game-kind-{}", std::process::id()));
         let install = |name: &str, executables: &[Kind], map: Option<&str>| {
             let dir = root.join(name);
@@ -389,11 +391,11 @@ mod tests {
             dir
         };
         let kind = |dir: &Path, listed| Game::listed_as(dir, FoundBy::Chosen, listed).map(|game| game.kind);
-        // ATS, ETS2's executable copied in too.
+        // ATS is rejected, including the historical edge case where an ETS2 executable was copied into it.
         let ats = install("ats", &[Kind::Ets2, Kind::Ats], Some("usa"));
-        assert_eq!(kind(&ats, Some(Kind::Ats)), Some(Kind::Ats), "Steam's ATS install");
-        assert_eq!(kind(&ats, None), Some(Kind::Ats), "chosen by hand: its map says");
-        assert_eq!(Game::at(&ats, FoundBy::Chosen).map(|game| game.kind), Some(Kind::Ats));
+        assert_eq!(kind(&ats, Some(Kind::Ats)), None, "listed ATS install");
+        assert_eq!(kind(&ats, None), None, "chosen ATS folder");
+        assert_eq!(Game::at(&ats, FoundBy::Chosen), None);
         // One executable: that game, whatever it's listed as (the listing then not this game: `find` leaves it).
         let ets2 = install("ets2", &[Kind::Ets2], Some("europe"));
         assert_eq!(kind(&ets2, None), Some(Kind::Ets2));
@@ -413,8 +415,9 @@ mod tests {
         assert!(game(Kind::Ets2, Some(Version([1, 62, 0, 1]))).tested());
         assert!(!game(Kind::Ets2, Some(Version([1, 59, 1, 3]))).tested());
         assert!(!game(Kind::Ets2, None).tested());
-        assert!(game(Kind::Ats, Some(Version([1, 62, 0, 4]))).tested());
-        assert!(!game(Kind::Ats, Some(Version([1, 61, 3, 18]))).tested());
+        // ATS metadata remains deserializable but is never discovered by CabinOS.
+        assert_eq!(Kind::ALL, [Kind::Ets2]);
+        assert!(find(Kind::Ats).is_empty());
     }
 
     #[test]
@@ -425,6 +428,7 @@ mod tests {
         let ats = "\"AppState\" { \"appid\" \"270880\" \"installdir\" \"American\" }";
         assert_eq!(steam_install_dir(ats, Kind::Ets2), None);
         assert_eq!(steam_install_dir(ats, Kind::Ats).as_deref(), Some("American"));
+        assert!(find(Kind::Ats).is_empty());
     }
 
     #[test]
@@ -442,6 +446,7 @@ mod tests {
         assert!(!Kind::Ets2.is_program("American Truck Simulator"));
         assert!(Kind::Ats.is_program("American Truck Simulator"));
         assert!(!Kind::Ats.is_program("Euro Truck Simulator 2"));
+        assert_eq!(Kind::ALL, [Kind::Ets2]);
     }
 
     #[test]
