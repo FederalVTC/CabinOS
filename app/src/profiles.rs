@@ -208,11 +208,20 @@ fn ensure_vehicle_available(
     target_id: &str,
     vehicle: Option<&VehicleIdentity>,
 ) -> Result<(), String> {
-    let Some(fingerprint) = vehicle.and_then(|vehicle| vehicle.fingerprint.as_deref()) else {
+    let Some(vehicle) = vehicle else {
         return Ok(());
     };
     if let Some(existing) = profiles.iter().find(|profile| {
-        profile.id != target_id && profile.vehicle.as_ref().and_then(|vehicle| vehicle.fingerprint.as_deref()) == Some(fingerprint)
+        if profile.id == target_id {
+            return false;
+        }
+        let Some(existing) = profile.vehicle.as_ref() else {
+            return false;
+        };
+        match (vehicle.fingerprint.as_deref(), existing.fingerprint.as_deref()) {
+            (Some(left), Some(right)) => left == right,
+            _ => vehicle.model_id == existing.model_id && vehicle.brand_id == existing.brand_id,
+        }
     }) {
         return Err(format!("Este camión ya está asignado al perfil «{}».", existing.name));
     }
