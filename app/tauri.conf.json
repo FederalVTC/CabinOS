@@ -53,12 +53,7 @@
     },
     "targets": [
       "nsis"
-    ],
-    "windows": {
-      "nsis": {
-        "installMode": "currentUser"
-      }
-    }
+    ]
   },
   "plugins": {
     "updater": {
