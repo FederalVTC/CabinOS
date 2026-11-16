@@ -7,7 +7,7 @@
     "devUrl": "http://localhost:5173",
     "frontendDist": "../ui/dist",
     "beforeDevCommand": {
-      "script": "npm run dev",
+      "script": "powershell -NoProfile -ExecutionPolicy Bypass -File ../tools/build-dev.ps1",
       "cwd": "../ui",
       "wait": false
     },
