@@ -33,8 +33,12 @@ const useShownLook = create<{ look: ResolvedLook | null }>()(() => ({ look: null
 
 /** Appearance and wallpaper image, from the appearance mode, the truck (time, headlights) and the wallpaper. */
 function useWantedLook(): ResolvedLook {
-  const mode = useCabin((state) => state.appearanceMode)
-  const wallpaperId = useCabin((state) => state.wallpaperId)
+  const globalMode = useCabin((state) => state.appearanceMode)
+  const globalWallpaper = useCabin((state) => state.wallpaperId)
+  const profileMode = useLive((state) => state.profile?.appearance.mode)
+  const profileWallpaper = useLive((state) => state.profile?.appearance.wallpaper)
+  const mode = profileMode ?? globalMode
+  const wallpaperId = profileWallpaper ?? globalWallpaper
   const wallpapers = useWallpapers()
   // Select primitives: telemetry arrives ~20 times a second, but these only change every game minute.
   const gameTime = useLive((state) => (state.telemetry ? cabClock(state.telemetry, state.clockShift) : null))
