@@ -1,11 +1,11 @@
-//! WestPlay's game plugin (`westplay.dll`), in the game's `bin/win_x64/plugins` folder, where the game loads
+//! CabinOS's game plugin (`cabinos.dll`), in the game's `bin/win_x64/plugins` folder, where the game loads
 //! SDK plugins from (and TruckersMP's client too).
 //!
 //! Installing writes the new plugin beside the one there, then moves it over it, so the game never finds
 //! half a file. WestPlay's probe (`westplay-probe.exe`, `westplay_shared::probe`) goes with it, beside it: the
 //! plugin runs it to find the DirectX functions it hooks outside the game. Two things can stand in the way, and each is told apart: the game running (it holds the
 //! plugin it loaded: close it first), and a folder that needs administrator rights (Steam installed under
-//! Program Files). For the latter WestPlay starts itself again with them, for that one copy only
+//! Program Files). For the latter CabinOS starts itself again with them, for that one copy only
 //! ([`install_as_administrator`]): Windows asks the player once, and nothing else runs with those rights.
 
 use std::io;
@@ -21,7 +21,7 @@ use crate::game::Game;
 
 /// The plugin's file, in the game's plugins folder.
 pub const FILE_NAME: &str = "cabinos.dll";
-/// The argument WestPlay is started with, as administrator, to copy the plugin and nothing else.
+/// The argument CabinOS is started with, as administrator, to copy the plugin and nothing else.
 const COPY_ARGUMENT: &str = "--cabinos-install-plugin";
 /// The same, to remove it and nothing else (uninstalling).
 const REMOVE_ARGUMENT: &str = "--cabinos-remove-plugin";
@@ -36,7 +36,7 @@ const EXIT_COPIED: u32 = 0;
 const EXIT_IN_USE: u32 = 2;
 const EXIT_FAILED: u32 = 1;
 
-/// The plugin in a game, against WestPlay's own.
+/// The plugin in a game, against CabinOS's own.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum State {
     Missing,
@@ -84,7 +84,7 @@ impl From<io::Error> for InstallError {
     }
 }
 
-/// The plugin installed in `game`, against WestPlay's own (`ours`, the file WestPlay ships), with the probe beside
+/// The plugin installed in `game`, against WestPlay's own (`ours`, the file CabinOS ships), with the probe beside
 /// it against the one beside ours (when WestPlay ships one: a development build may not have built it).
 pub fn state(game: &Game, ours: &Path) -> io::Result<State> {
     let plugins = game.plugins_dir();
