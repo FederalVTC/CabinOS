@@ -81,6 +81,45 @@ pub enum Content {
     },
 }
 
+/// The active ETS2 truck identity used by CabinOS profile matching.
+/// The fingerprint is a local, deterministic hash of the model id and licence plate; the plate itself is never
+/// sent to the companion UI or written to a profile.
+#[derive(Clone, Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActiveTruck {
+    pub id: String,
+    pub brand_id: String,
+    pub brand: String,
+    pub name: String,
+    pub fingerprint: Option<String>,
+    pub identity_confident: bool,
+}
+
+fn active_truck(info: TruckInfo) -> Option<ActiveTruck> {
+    let id = info.id.as_str().to_owned();
+    if id.is_empty() {
+        return None;
+    }
+    let plate = info.plate.as_str().trim().to_ascii_lowercase();
+    let fingerprint = if plate.is_empty() {
+        None
+    } else {
+        let source = format!("{id}|{plate}");
+        let hash = source.bytes().fold(0xcbf29ce484222325u64, |hash, byte| {
+            (hash ^ u64::from(byte)).wrapping_mul(0x100000001b3)
+        });
+        Some(format!("{hash:016x}"))
+    };
+    Some(ActiveTruck {
+        id,
+        brand_id: info.brand_id.as_str().to_owned(),
+        brand: info.brand.as_str().to_owned(),
+        name: info.name.as_str().to_owned(),
+        identity_confident: fingerprint.is_some(),
+        fingerprint,
+    })
+}
+
 /// Host health, reported about once per second.
 #[derive(Clone, Debug, Default, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -102,6 +141,8 @@ pub struct Status {
     /// Whether the truck the player is in is one WestPlay shows in, as the plugin last saw (`None`: not known yet,
     /// or no game).
     pub truck_supported: Option<bool>,
+    /// The active truck's safe identity for per-vehicle profiles (no raw licence plate).
+    pub truck: Option<ActiveTruck>,
     /// The coach the player drives: how many speakers its passengers' set plays through (its body's, from the
     /// save's fitted parts). `None` in a truck, with no game, or before the coach's parts are read: the companion's
     /// Coach speakers greyed out then (owner 2026-11-13).
@@ -671,6 +712,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                     westplay_shared::TRUCK_UNSUPPORTED => Some(false),
                     _ => None,
                 };
+                status.truck = status.game_connected.then(|| plugin.truck.read()).flatten().and_then(active_truck);
                 status.coach_speakers = coach_sets
                     .as_ref()
                     .filter(|_| status.game_connected)
