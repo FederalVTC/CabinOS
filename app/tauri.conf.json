@@ -54,8 +54,10 @@
     "targets": [
       "nsis"
     ],
-    "nsis": {
-      "installMode": "currentUser"
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
     }
   },
   "plugins": {
