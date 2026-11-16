@@ -166,6 +166,22 @@ fn validate_vehicle(vehicle: &VehicleIdentity) -> Result<(), String> {
     Ok(())
 }
 
+fn ensure_vehicle_available(
+    profiles: &[TruckProfile],
+    target_id: &str,
+    vehicle: Option<&VehicleIdentity>,
+) -> Result<(), String> {
+    let Some(fingerprint) = vehicle.and_then(|vehicle| vehicle.fingerprint.as_deref()) else {
+        return Ok(());
+    };
+    if let Some(existing) = profiles.iter().find(|profile| {
+        profile.id != target_id && profile.vehicle.as_ref().and_then(|vehicle| vehicle.fingerprint.as_deref()) == Some(fingerprint)
+    }) {
+        return Err(format!("Este camión ya está asignado al perfil «{}».", existing.name));
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub fn profiles_list(store: State<'_, Profiles>) -> Result<Vec<TruckProfile>, String> {
     let _guard = store.lock.lock().unwrap_or_else(|e| e.into_inner());
@@ -183,6 +199,8 @@ pub fn profiles_create(
         validate_vehicle(vehicle)?;
     }
     let _guard = store.lock.lock().unwrap_or_else(|e| e.into_inner());
+    let existing = store.read_all()?;
+    ensure_vehicle_available(&existing, "", vehicle.as_ref())?;
     let profile = TruckProfile::new(new_id(), name, vehicle, now());
     store.write(&profile).map_err(|e| e.to_string())?;
     Ok(profile)
@@ -207,6 +225,8 @@ pub fn profiles_update(
         return Err("La distribución del perfil no es válida.".into());
     }
     let _guard = store.lock.lock().unwrap_or_else(|e| e.into_inner());
+    let existing_profiles = store.read_all()?;
+    ensure_vehicle_available(&existing_profiles, &profile.id, profile.vehicle.as_ref())?;
     let path = store.path(&profile.id);
     if !path.is_file() {
         return Err("El perfil ya no existe.".into());
@@ -245,6 +265,8 @@ pub fn profiles_assign(
     }
     validate_vehicle(&vehicle)?;
     let _guard = store.lock.lock().unwrap_or_else(|e| e.into_inner());
+    let existing_profiles = store.read_all()?;
+    ensure_vehicle_available(&existing_profiles, &id, Some(&vehicle))?;
     let path = store.path(&id);
     let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
     let mut profile: TruckProfile = serde_json::from_str(&text).map_err(|e| e.to_string())?;
