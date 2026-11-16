@@ -111,7 +111,7 @@ fn homedir(options: &str) -> Option<PathBuf> {
 /// WestPlay's own folder in Documents (in Windows' Documents, as the plugin finds it): its logs, and its
 /// screens mod, which the plugin mounts into the game itself (`game_mod`).
 pub fn westplay_documents() -> Option<PathBuf> {
-    Some(documents()?.join("WestPlay"))
+    Some(documents()?.join("CabinOS"))
 }
 
 /// The game `kind`'s own folder in Documents: its profiles, mods and settings. Of the folders that may be
