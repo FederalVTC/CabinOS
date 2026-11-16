@@ -1,3 +1,5 @@
+import type { TruckProfile } from './profiles'
+
 import type { CustomWallpaper, IconSet } from './customize'
 
 /**
@@ -98,6 +100,8 @@ export type KeybindAction =
 export type HostMessage =
   | { type: 'telemetry'; data: Telemetry }
   | { type: 'truck'; data: TruckInfo | null }
+  /** The one safely matched per-truck profile, or null to use global defaults. */
+  | { type: 'profile'; data: TruckProfile | null }
   | { type: 'job'; data: JobInfo }
   /** `null` until the game has drawn a WestPlay screen. Checked against the known ids on arrival. */
   | { type: 'screen'; layout: string | null }
