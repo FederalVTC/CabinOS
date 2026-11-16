@@ -4,7 +4,7 @@
 //! the standard error, which WestPlay keeps in its log.
 //!
 //! Its memory allocator is chosen as it starts, before anything is allocated ([`Chosen`]): mimalloc when WestPlay
-//! asks for a faster build (`WESTPLAY_MAP_ALLOCATOR=mimalloc`), Windows' own otherwise. A process keeps the one it
+//! asks for a faster build (`CABINOS_MAP_ALLOCATOR=mimalloc`), Windows' own otherwise. A process keeps the one it
 //! started with: memory one allocator gave is only ever handed back to it.
 
 use std::alloc::{GlobalAlloc, Layout, System};
