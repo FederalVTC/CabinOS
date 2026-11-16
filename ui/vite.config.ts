@@ -16,21 +16,21 @@ const PLACEHOLDER_FOLDERS = [
 ]
 
 /**
- * Release builds (WESTPLAY_RELEASE=1, used by `tauri build`) must not contain the development placeholders
+ * Release builds (CABINOS_RELEASE=1, used by `tauri build`) must not contain the development placeholders
  * (see src/shared/icons.ts and src/shared/wallpapers.ts). Vite copies public/ into the build, so those
  * folders must be gone or empty before a release can be built.
  */
 function noPlaceholders(): Plugin {
   return {
-    name: 'westplay-no-placeholders',
+    name: 'cabinos-no-placeholders',
     apply: 'build',
     buildStart() {
-      if (process.env.WESTPLAY_RELEASE !== '1') return
+      if (process.env.CABINOS_RELEASE !== '1') return
       for (const relative of PLACEHOLDER_FOLDERS) {
         const folder = resolve(import.meta.dirname, relative)
         if (existsSync(folder) && readdirSync(folder).length > 0) {
           this.error(
-            `Release build blocked: ${relative} still contains placeholders. Replace them with WestPlay's own assets first.`,
+            `Release build blocked: ${relative} still contains placeholders. Replace them with CabinOS assets first.`,
           )
         }
       }
@@ -53,7 +53,7 @@ function devMap(): Plugin {
     '.png': 'image/png',
   }
   return {
-    name: 'westplay-dev-map',
+    name: 'cabinos-dev-map',
     apply: 'serve',
     configureServer(server) {
       server.middlewares.use((request, response, next) => {
