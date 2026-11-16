@@ -187,8 +187,6 @@ export type HostMessage =
   | { type: 'routeNext'; next: number }
   /** Open (or close) WestPlay on the truck's screen: the companion window's switch. */
   | { type: 'westplay'; open: boolean }
-  /** Open a validated per-truck web shortcut in the player's default browser. */
-  | { type: 'openShortcut'; url: string }
   /** The game's weather (`null` when it can't be read: no game, or a game version whose weather the host
    * doesn't know). */
   | { type: 'weather'; weather: GameWeather | null }
@@ -327,6 +325,8 @@ export type PageMessage =
   /** Whether WestPlay is open on the truck's screen (or the truck's original screen shows): posted as the
    * page connects and whenever it changes, for the companion window. */
   | { type: 'westplay'; open: boolean }
+  /** Open a validated per-truck web shortcut in the player's default browser. */
+  | { type: 'openShortcut'; url: string }
   /** The wallpaper chosen in Settings (wallpapers.ts), kept with WestPlay's settings (the companion's too). */
   | { type: 'wallpaper'; id: string }
   /** The Vehicle Bar (the truck's strip) kept or not, chosen in Settings › Appearance, kept the same way. */
