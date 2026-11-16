@@ -372,6 +372,7 @@ fn start_host(
             let (settings_events, settings_dir) = (events.clone(), looks.config_dir.clone());
             let customize_changed = looks.customize_changed.clone();
             let profile_store = profiles.clone();
+            let profiles_changed = profiles.revision_signal();
             let run = std::thread::Builder::new().name("westplay-host".into()).spawn(move || {
                 let config = Config {
                     width: SCREEN_WIDTH,
@@ -405,6 +406,7 @@ fn start_host(
                         profile_store.for_vehicle(&vehicle).ok().flatten()
                             .and_then(|profile| serde_json::to_value(profile).ok())
                     }),
+                    profiles_changed,
                     customize_changed,
                 };
                 match westplay_host::run(config, stop) {
