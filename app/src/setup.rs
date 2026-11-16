@@ -1,6 +1,6 @@
 //! The companion's setup, for its onboarding: finding the game (or the player showing where it is), checking
-//! it (its version, DLCs, the profiles' map mods, the truck screens WestPlay can draw on), and installing
-//! WestPlay into it (the plugin, and the game mod built from the player's own game). The map is then built
+//! it (its version, DLCs, the profiles' map mods, the truck screens CabinOS can draw on), and installing
+//! CabinOS into it (the plugin, and the game mod built from the player's own game). The map is then built
 //! by the host (`westplay_host::maps`), for the game set up here. What setup did is kept in `setup.json`
 //! (`westplay_setup::record`): the game, and whether the onboarding was finished.
 //!
@@ -30,11 +30,11 @@ use westplay_setup::{cab_mark, dlc, game_mod, pick, places, profiles, tablet};
 pub struct SetupStore(Arc<Inner>);
 
 struct Inner {
-    /// WestPlay's config folder, where the record is kept.
+    /// CabinOS's config folder, where the record is kept.
     dir: PathBuf,
     record: Mutex<Record>,
     game: Arc<SetUpGame>,
-    /// WestPlay's plugin, to install (`None`: this build of WestPlay has none).
+    /// CabinOS's plugin, to install (`None`: this build of CabinOS has none).
     plugin: Option<PathBuf>,
 }
 
@@ -60,13 +60,13 @@ impl Inner {
     fn update(&self, change: impl FnOnce(&mut Record)) -> Result<(), String> {
         let mut record = self.record.lock().unwrap_or_else(|e| e.into_inner());
         change(&mut record);
-        record.save(&self.dir).map_err(|e| format!("Couldn't save WestPlay's setup: {e}"))?;
+        record.save(&self.dir).map_err(|e| format!("Couldn't save CabinOS's setup: {e}"))?;
         self.game.set(record.dirs());
         Ok(())
     }
 }
 
-/// WestPlay's plugin: shipped beside the app (its resources, or the app's own folder in an unbundled release
+/// CabinOS's plugin: shipped beside the app (its resources, or the app's own folder in an unbundled release
 /// build); while developing, the release build of it (the one the dev loop builds and installs).
 fn plugin_file(app: &AppHandle) -> Option<PathBuf> {
     let candidates: Vec<PathBuf> = if cfg!(debug_assertions) {
@@ -79,9 +79,9 @@ fn plugin_file(app: &AppHandle) -> Option<PathBuf> {
     candidates.into_iter().find(|path| path.is_file())
 }
 
-/// WestPlay's map builder (westplay_setup::map_builder): shipped beside the app (its resources, or the app's own
+/// CabinOS's map builder (westplay_setup::map_builder): shipped beside the app (its resources, or the app's own
 /// folder: also where a development build's is, once built with `cargo build -p westplay-maps`); `None`: maps are
-/// built in WestPlay's own process.
+/// built in CabinOS's own process.
 pub fn map_builder_file(app: &AppHandle) -> Option<PathBuf> {
     let file = westplay_setup::map_builder::FILE_NAME;
     let beside = std::env::current_exe().ok().and_then(|exe| Some(exe.parent()?.join(file)));
@@ -99,7 +99,7 @@ pub struct GameInfo {
     /// `steam`, `installed` (another store's, or SCS's own installer) or `chosen`.
     found_by: &'static str,
     version: Option<String>,
-    /// WestPlay has been tried with this version.
+    /// CabinOS has been tried with this version.
     tested: bool,
     dlcs: usize,
 }
@@ -126,12 +126,12 @@ impl From<&Game> for GameInfo {
 pub struct SetupState {
     /// The onboarding was gone through: the companion opens on its own pages.
     finished: bool,
-    /// The game WestPlay is set up in, if it is (and it's still there): ETS2's, else the one set up, until the
+    /// The game CabinOS is set up in, if it is (and it's still there): ETS2's, else the one set up, until the
     /// companion shows each game set up (ATS support, phase 1).
     game: Option<GameInfo>,
-    /// Every game WestPlay is set up in (still there).
+    /// Every game CabinOS is set up in (still there).
     games: Vec<GameInfo>,
-    /// WestPlay was updated since it put its plugin and mod into a game set up: the companion puts the new ones
+    /// CabinOS was updated since it put its plugin and mod into a game set up: the companion puts the new ones
     /// in (`install_into_game`) once the games are closed. Never in a development build (its plugin is the
     /// development loop's to install).
     updated: bool,
@@ -173,7 +173,7 @@ pub async fn setup_state(store: State<'_, SetupStore>) -> Result<SetupState, Str
     .await
 }
 
-/// The onboarding speaks the game's language, as WestPlay does in the cab (its words, and the map's place
+/// The onboarding speaks the game's language, as CabinOS does in the cab (its words, and the map's place
 /// names): the one a game was last set to (the `config.cfg` written last, of either game), or one set for
 /// trying it out (`WESTPLAY_LANGUAGE`). A player who never started a game has neither: the onboarding then
 /// follows Windows'.
@@ -226,12 +226,12 @@ pub struct GameCheck {
     map_dlcs: Vec<String>,
     /// The player's profiles, the most recently saved first.
     profiles: Vec<ProfileCheck>,
-    /// The trucks WestPlay is made for (`westplay_setup::trucks`), and whether the player can have it in
-    /// each: `ready`, `notInGame`, or `notYet` (in the game, but WestPlay doesn't draw on its screen yet).
+    /// The trucks CabinOS is made for (`westplay_setup::trucks`), and whether the player can have it in
+    /// each: `ready`, `notInGame`, or `notYet` (in the game, but CabinOS doesn't draw on its screen yet).
     trucks: Vec<TruckCheck>,
-    /// Why WestPlay's mod can't be built from this game, if it can't (a game version it doesn't know yet).
+    /// Why CabinOS's mod can't be built from this game, if it can't (a game version it doesn't know yet).
     mod_problem: Option<String>,
-    /// WestPlay's plugin in the game: `missing`, `current`, or `different` (another version of it).
+    /// CabinOS's plugin in the game: `missing`, `current`, or `different` (another version of it).
     plugin: &'static str,
     /// Other CarPlay apps installed in the game, which take the trucks' screens (`ymnOne`): to be removed.
     other_apps: Vec<&'static str>,
@@ -258,9 +258,9 @@ pub struct ProfileCheck {
     map: String,
     /// The mods that change its map, as the game names them.
     map_mods: Vec<String>,
-    /// Map mods WestPlay couldn't read (a format it doesn't know): their roads are left out of its map.
+    /// Map mods CabinOS couldn't read (a format it doesn't know): their roads are left out of its map.
     unreadable: usize,
-    /// It plays HVT's map, which WestPlay doesn't allow (no map for it; nothing of it named).
+    /// It plays HVT's map, which CabinOS doesn't allow (no map for it; nothing of it named).
     hvt_map: bool,
 }
 
@@ -338,7 +338,7 @@ pub async fn check_game(dir: PathBuf, store: State<'_, SetupStore>) -> Result<Ga
 /// The mod built for `game` and its installed mods, and the marks of the vehicles its tablet shows nothing in
 /// (`tablet::write_apart`).
 ///
-/// Each step is logged before it starts: one that ends WestPlay (a mod read wrong, 2026-11-06: the companion
+/// Each step is logged before it starts: one that ends CabinOS (a mod read wrong, 2026-11-06: the companion
 /// closing as Install is pressed) is the last line, with the mods it was reading.
 fn build_mod(game: &Game) -> Result<(Vec<u8>, game_mod::Built, Vec<u64>), String> {
     log!("setup: the mod: reading the game's files");
@@ -378,14 +378,14 @@ fn installed_mod_files(game: &Game) -> Vec<PathBuf> {
 /// How often the installed mods are looked at for trucks the tablet isn't in yet, and mod vehicles' screens.
 const MODS_LOOK: Duration = Duration::from_secs(30);
 
-/// What WestPlay's mod was last worked out from: the game (its folder, version and DLCs), each installed mod's
+/// What CabinOS's mod was last worked out from: the game (its folder, version and DLCs), each installed mod's
 /// files (their path, size and when they last changed), and each profile's `profile.sii` (when it last changed: its
 /// active mods, which decide the copy of a dashboard script the cab's mark goes in).
 type ModsStamp =
     (PathBuf, Option<String>, usize, Vec<(PathBuf, u64, Option<SystemTime>)>, Vec<(PathBuf, Option<SystemTime>)>);
 
-/// Keeps WestPlay's mod as the installed mods want it: the tablet in every truck with its slots, the game's and its
-/// installed mods' (owner 2026-10-24: "any truck, of any mod"), the screens of the mod vehicles WestPlay draws
+/// Keeps CabinOS's mod as the installed mods want it: the tablet in every truck with its slots, the game's and its
+/// installed mods' (owner 2026-10-24: "any truck, of any mod"), the screens of the mod vehicles CabinOS draws
 /// on (Oyuncuyusbis' coaches: a bus mod installed, updated or taken out), and the cab's mark in those trucks'
 /// dashboards (`cab_mark`: a mod's script updated, or another copy of it installed). While the game is closed, once the
 /// installed mods change, the mod is made again if it isn't so (the plugin mounts it as the game starts).
@@ -399,7 +399,7 @@ pub fn watch_installed_mods(store: &SetupStore) {
         }
     };
     if let Err(error) = std::thread::Builder::new().name("westplay-mods".into()).spawn(watch) {
-        log!("setup: can't watch the installed mods for WestPlay's mod: {error}");
+        log!("setup: can't watch the installed mods for CabinOS's mod: {error}");
     }
 }
 
@@ -482,12 +482,12 @@ fn look_at_game_mods(game: &Game, looked: &mut HashMap<PathBuf, ModsStamp>) {
         let built = match made {
             Ok(built) => built,
             // Tried again at the next look.
-            Err(error) => return log!("setup: WestPlay's mod not made again for the installed mods: {error}"),
+            Err(error) => return log!("setup: CabinOS's mod not made again for the installed mods: {error}"),
         };
         let screens: Vec<&str> =
             built.patched.iter().copied().filter(|layout| game_mod::mod_screen_layout(layout)).collect();
         log!(
-            "setup: WestPlay's mod made again: the tablet at {} places (was {}), {} of them the mods' trucks'; the mod \
+            "setup: CabinOS's mod made again: the tablet at {} places (was {}), {} of them the mods' trucks'; the mod \
              vehicles' screens: {screens:?}; the cab's mark in {} dashboards",
             wanted.len(),
             present.len(),
@@ -524,13 +524,13 @@ pub struct InstallReport {
     plugin: PluginOutcome,
     /// Why the mod couldn't be built or written, if it couldn't.
     mod_error: Option<String>,
-    /// Everything's in: WestPlay is set up in this game (its map is built next).
+    /// Everything's in: CabinOS is set up in this game (its map is built next).
     done: bool,
 }
 
-/// Installs WestPlay into the game in `dir`: its mod, built from this game, into WestPlay's own folder (the
+/// Installs CabinOS into the game in `dir`: its mod, built from this game, into CabinOS's own folder (the
 /// plugin mounts it into the game: `game_mod`), and its plugin into the game's plugins folder (with
-/// `administrator`, through Windows' prompt, for that one copy). Once both are in, WestPlay is set up in this
+/// `administrator`, through Windows' prompt, for that one copy). Once both are in, CabinOS is set up in this
 /// game.
 #[tauri::command]
 pub async fn install_into_game(
@@ -559,7 +559,7 @@ pub async fn install_into_game(
     .await
 }
 
-/// The mod into WestPlay's own folder; then, from a game WestPlay 1.2 set up, its copy taken out of the game's
+/// The mod into CabinOS's own folder; then, from a game CabinOS 1.2 set up, its copy taken out of the game's
 /// `mod` folder and out of each profile's active mods (the game closed: the companion installs only then).
 /// Two copies would stop the game when a screen starts, and the plugin doesn't mount its own while the old one
 /// is there.
@@ -573,13 +573,13 @@ fn install_mod(game: &Game) -> Result<(), String> {
     game_mod::install(&bytes, &ours, game.kind).map_err(|e| format!("Couldn't write the mod: {e}"))?;
     tablet::write_apart(&apart, &ours, game.kind).map_err(|e| format!("Couldn't write the mod: {e}"))?;
     if let Some(documents) = places::game_documents(game.kind) {
-        log!("setup: the mod: WestPlay 1.2's old copy taken out of the game's mods and profiles");
+        log!("setup: the mod: CabinOS 1.2's old copy taken out of the game's mods and profiles");
         westplay_setup::uninstall::remove_mod(&documents)
             .map_err(|e| format!("Couldn't take the old mod out of the game's mod folder: {e}"))?;
         let userdata = places::steam().map(|steam| steam.join("userdata"));
         let profiles = westplay_setup::uninstall::remove_from_profiles(game.kind, &documents, userdata.as_deref());
         for (file, error) in &profiles.failed {
-            log!("setup: WestPlay's old mod left in {}: {error}", file.display());
+            log!("setup: CabinOS's old mod left in {}: {error}", file.display());
         }
     }
     Ok(())
@@ -603,10 +603,10 @@ fn install_plugin(game: &Game, ours: &Path, administrator: bool) -> PluginOutcom
     }
 }
 
-/// This WestPlay's version.
+/// This CabinOS's version.
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-/// Whether this WestPlay is another version than the one that put its plugin and mod into the game
+/// Whether this CabinOS is another version than the one that put its plugin and mod into the game
 /// (`installed_by`; none: one from before versions were kept). Never in a development build.
 fn is_update(installed_by: Option<&str>) -> bool {
     !cfg!(debug_assertions) && installed_by != Some(VERSION)
@@ -623,20 +623,20 @@ async fn blocking<T: Send + 'static>(work: impl FnOnce() -> Result<T, String> + 
     tauri::async_runtime::spawn_blocking(work).await.map_err(|e| e.to_string())?
 }
 
-/// What taking WestPlay out of the game did. Mirrored by the companion's `UninstallReport`.
+/// What taking CabinOS out of the game did. Mirrored by the companion's `UninstallReport`.
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UninstallReport {
     plugin: PluginOutcome,
     mod_error: Option<String>,
-    /// Profiles WestPlay was taken out of, and those it couldn't be (left as they were).
+    /// Profiles CabinOS was taken out of, and those it couldn't be (left as they were).
     profiles_changed: usize,
     profiles_failed: usize,
-    /// WestPlay is out of the game (its plugin and mod gone): its own data can go next ([`leave_pc`]).
+    /// CabinOS is out of the game (its plugin and mod gone): its own data can go next ([`leave_pc`]).
     done: bool,
 }
 
-/// Takes WestPlay out of the games it's set up in, the games closed: out of each profile's active mods (each
+/// Takes CabinOS out of the games it's set up in, the games closed: out of each profile's active mods (each
 /// checked, written whole), its screens mod, then its plugin (with `administrator`, through Windows' prompt,
 /// for that one file). Its own data stays until [`leave_pc`].
 #[tauri::command]
@@ -666,7 +666,7 @@ pub async fn uninstall_from_game(administrator: bool, store: State<'_, SetupStor
                 mod_error.get_or_insert(error.to_string());
             }
         }
-        // No game set up (or it's gone): no plugin of WestPlay's anywhere to take out. Of several, the first that
+        // No game set up (or it's gone): no plugin of CabinOS's anywhere to take out. Of several, the first that
         // couldn't be taken out says why.
         let mut plugin = PluginOutcome::Installed;
         for game in &set_up {
@@ -689,17 +689,17 @@ pub async fn uninstall_from_game(administrator: bool, store: State<'_, SetupStor
     .await
 }
 
-/// The companion's own browser data (its window's WebView2 profile): in use until WestPlay ends.
+/// The companion's own browser data (its window's WebView2 profile): in use until CabinOS ends.
 const COMPANION_BROWSER: &str = "EBWebView";
 /// How long a folder still in use (a browser that hasn't let go of its files yet) is tried again.
 const IN_USE_FOR: std::time::Duration = std::time::Duration::from_secs(20);
 
-/// WestPlay's data leaves the PC while the companion shows it going (the uninstall's spinner), once it's out of
+/// CabinOS's data leaves the PC while the companion shows it going (the uninstall's spinner), once it's out of
 /// the game: the engine stops (the screen's and the players' browsers, and with them the files they hold),
 /// then the players' browsers go with every sign-in, and unless `keep`, the maps, the player's own wallpapers
 /// and icon sets, and the settings; the setup record either way (a reinstall starts with the onboarding).
 /// Each is tried again while a browser that has just closed still holds it. Left for [`leave_pc`]: what's in
-/// use until WestPlay ends (the companion's own browser data, the logs), and anything still held here.
+/// use until CabinOS ends (the companion's own browser data, the logs), and anything still held here.
 #[tauri::command]
 pub async fn remove_data(keep: bool, app: AppHandle, store: State<'_, SetupStore>) -> Result<(), String> {
     let config = store.0.dir.clone();
@@ -724,7 +724,7 @@ pub async fn remove_data(keep: bool, app: AppHandle, store: State<'_, SetupStore
         }
         if !left.is_empty() {
             let names: Vec<String> = left.iter().map(|path| path.display().to_string()).collect();
-            log!("[uninstall] still in use, left for when WestPlay has ended: {}", names.join(", "));
+            log!("[uninstall] still in use, left for when CabinOS has ended: {}", names.join(", "));
         }
         Ok(())
     })
@@ -744,8 +744,8 @@ fn remove_soon(path: &Path, until: std::time::Instant) -> bool {
     }
 }
 
-/// WestPlay leaves the PC (after [`remove_data`]): a hidden step waits for WestPlay to end, removes what was in
-/// use until then (the companion's own browser data, the logs in Documents\WestPlay, the data and settings
+/// CabinOS leaves the PC (after [`remove_data`]): a hidden step waits for CabinOS to end, removes what was in
+/// use until then (the companion's own browser data, the logs in Documents\CabinOS, the data and settings
 /// folders themselves unless `keep`, and anything [`remove_data`] couldn't), and, if it was installed, runs its
 /// uninstaller quietly, which takes the app itself away. Then it quits.
 #[tauri::command]
@@ -767,7 +767,7 @@ pub fn leave_pc(keep: bool, app: AppHandle, store: State<SetupStore>) -> Result<
         vec![data, config]
     };
     if let Some(documents) = places::documents() {
-        paths.push(documents.join("WestPlay"));
+        paths.push(documents.join("CabinOS"));
     }
     let uninstaller = std::env::current_exe().ok().and_then(|exe| Some(exe.parent()?.join("uninstall.exe")));
     after_exit(&paths, uninstaller.filter(|path| path.is_file()).as_deref())?;
@@ -775,7 +775,7 @@ pub fn leave_pc(keep: bool, app: AppHandle, store: State<SetupStore>) -> Result<
     Ok(())
 }
 
-/// Starts a step with no window at all (PowerShell, hidden): it waits for this WestPlay to end (its process
+/// Starts a step with no window at all (PowerShell, hidden): it waits for this CabinOS to end (its process
 /// gone, not a guess at the time), removes `paths` (folders or files), each tried again while a browser that
 /// has just closed still holds it, and starts `uninstaller` quietly, if there is one.
 fn after_exit(paths: &[PathBuf], uninstaller: Option<&Path>) -> Result<(), String> {
@@ -791,7 +791,7 @@ fn after_exit(paths: &[PathBuf], uninstaller: Option<&Path>) -> Result<(), Strin
         .creation_flags(CREATE_NO_WINDOW)
         .spawn()
         .map(|_| ())
-        .map_err(|e| format!("Couldn't remove WestPlay's data: {e}"))
+        .map_err(|e| format!("Couldn't remove CabinOS's data: {e}"))
 }
 
 /// The step's script: wait for process `pid` to end (a minute at most), then remove each of `paths`, trying
@@ -847,10 +847,10 @@ mod tests {
 
     #[test]
     fn the_step_waits_for_westplay_then_removes_each_path_quoted() {
-        let script = after_exit_script(4242, &[PathBuf::from(r"C:\Users\O'Brien\WestPlay")]);
+        let script = after_exit_script(4242, &[PathBuf::from(r"C:\Users\O'Brien\CabinOS")]);
         assert!(script.contains("Get-Process -Id 4242"));
         assert!(script.contains("WaitForExit"));
-        assert!(script.contains(r"@('C:\Users\O''Brien\WestPlay')"));
+        assert!(script.contains(r"@('C:\Users\O''Brien\CabinOS')"));
     }
 
     /// The real step, hidden: it waits for a process still running (a short ping) to end, then removes a folder.
