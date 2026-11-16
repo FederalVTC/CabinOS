@@ -74,7 +74,7 @@ pub const TEST_PAGE: &str = include_str!("test_page.html");
 pub enum Content {
     Url(String),
     Html(String),
-    /// A built UI folder, served at `https://westplay.cabin/` through a WebView2 virtual host.
+    /// A built UI folder, served at `https://cabinos.cabin/` through a WebView2 virtual host.
     Folder {
         root: PathBuf,
         page: String,
@@ -310,8 +310,8 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
         Content::Url(url) => webview.navigate(url)?,
         Content::Html(html) => webview.navigate_to_string(html)?,
         Content::Folder { root, page } => {
-            webview.map_folder("westplay.cabin", root)?;
-            webview.navigate(&format!("https://westplay.cabin/{page}"))?;
+            webview.map_folder("cabinos.cabin", root)?;
+            webview.navigate(&format!("https://cabinos.cabin/{page}"))?;
         }
     }
     startup::mark("host: cabin page requested");
@@ -319,17 +319,17 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
     let mut meter = performance::Meter::new(match &config.content {
         Content::Url(url) => performance::host_of(url).unwrap_or_default(),
         Content::Html(_) => String::new(),
-        Content::Folder { .. } => "westplay.cabin".to_string(),
+        Content::Folder { .. } => "cabinos.cabin".to_string(),
     });
     // The player's maps, built from their game (maps.rs), for the cab's Maps app.
     let maps_dir = config.data_dir.join("maps");
     let _ = std::fs::create_dir_all(&maps_dir);
-    webview.map_folder_to_any_page("westplay.maps", &maps_dir)?;
+    webview.map_folder_to_any_page("cabinos.maps", &maps_dir)?;
     // The player's own wallpapers and icon sets (customize.rs), listed off this thread: deciding whether an
     // image is dark or light decodes it, which mustn't hold the screen up.
     let customize_dir = config.data_dir.join(customize::FOLDER);
     let _ = std::fs::create_dir_all(&customize_dir);
-    webview.map_folder_to_any_page("westplay.customize", &customize_dir)?;
+    webview.map_folder_to_any_page("cabinos.customize", &customize_dir)?;
     // Player: the game's music folder, listed off this thread (music_folder.rs); its songs' covers for the page.
     let music_covers = config.data_dir.join("music-covers");
     let _ = std::fs::create_dir_all(&music_covers);
@@ -1867,7 +1867,7 @@ unsafe impl Send for Instance {}
 impl Instance {
     /// Claims being the one WestPlay, or `None` if another is running.
     pub fn claim() -> Option<Self> {
-        Self::claim_named(windows::core::w!(r"Local\WestPlay.Instance"))
+        Self::claim_named(windows::core::w!(r"Local\CabinOS.Instance"))
     }
 
     fn claim_named(name: windows::core::PCWSTR) -> Option<Self> {
@@ -1902,8 +1902,8 @@ pub fn tell_already_running() {
     unsafe {
         MessageBoxW(
             None,
-            windows::core::w!("WestPlay is already running. Find it in the taskbar or the notification area."),
-            windows::core::w!("WestPlay"),
+            windows::core::w!("CabinOS is already running. Find it in the taskbar or the notification area."),
+            windows::core::w!("CabinOS"),
             MB_OK | MB_ICONINFORMATION,
         );
     }
@@ -2344,7 +2344,7 @@ fn settings_message(settings: &settings::Settings) -> String {
 }
 
 /// `{"type":"customize","wallpapers":[…],"iconSets":[…]}`: the player's own wallpapers and icon sets
-/// (`customize::Customizations`), their files at `https://westplay.customize/`.
+/// (`customize::Customizations`), their files at `https://cabinos.customize/`.
 fn customize_list_message(customizations: &customize::Customizations) -> String {
     let mut message = serde_json::to_value(customizations).unwrap_or_default();
     message["type"] = "customize".into();
@@ -2775,7 +2775,7 @@ mod tests {
     #[test]
     fn only_one_westplay_claims_the_session() {
         // A name of the test's own (a WestPlay may be running on this PC).
-        let name = windows::core::w!(r"Local\WestPlay.Instance.Test");
+        let name = windows::core::w!(r"Local\CabinOS.Instance.Test");
         let first = super::Instance::claim_named(name).expect("the first claims it");
         assert!(super::Instance::claim_named(name).is_none(), "a second must not");
         drop(first);
