@@ -108,7 +108,7 @@ fn homedir(options: &str) -> Option<PathBuf> {
     words.get(at + 1).filter(|folder| !folder.starts_with('-')).map(PathBuf::from)
 }
 
-/// WestPlay's own folder in Documents (in Windows' Documents, as the plugin finds it): its logs, and its
+/// CabinOS's own folder in Documents (in Windows' Documents, as the plugin finds it): its logs, and its
 /// screens mod, which the plugin mounts into the game itself (`game_mod`).
 pub fn westplay_documents() -> Option<PathBuf> {
     Some(documents()?.join("CabinOS"))
