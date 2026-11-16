@@ -12,7 +12,7 @@
       "wait": false
     },
     "beforeBuildCommand": {
-      "script": "npm run build:release",
+      "script": "powershell -NoProfile -ExecutionPolicy Bypass -File ../tools/build-release.ps1",
       "cwd": "../ui"
     }
   },
@@ -46,7 +46,10 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "../ui/dist/": "ui/"
+      "../ui/dist/": "ui/",
+      "../target/release/cabinos.dll": "cabinos.dll",
+      "../target/release/cabinos-probe.exe": "cabinos-probe.exe",
+      "../target/release/cabinos-maps.exe": "cabinos-maps.exe"
     }
   },
   "plugins": {
