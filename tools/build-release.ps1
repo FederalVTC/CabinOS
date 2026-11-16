@@ -1,17 +1,22 @@
+$param = @()
+param([switch]$SkipUi)
+
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $ui = Join-Path $root "ui"
 
-Push-Location $ui
-try {
-    npm run build:release
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE
+if (-not $SkipUi) {
+    Push-Location $ui
+    try {
+        npm run build:release
+        if ($LASTEXITCODE -ne 0) {
+            exit $LASTEXITCODE
+        }
     }
-}
-finally {
-    Pop-Location
+    finally {
+        Pop-Location
+    }
 }
 
 Push-Location $root
