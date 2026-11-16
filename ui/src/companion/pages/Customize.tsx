@@ -49,7 +49,7 @@ const ICON_FILES: [AppIconRole, string][] = [
  * add one). Choosing one shows it on the room's screen as on the truck's: the companion tells its screen
  * (Companion.tsx), the app tells the truck's (`look` settings). On the room's screen, Home.
  */
-export function Customize({ cw, settings, custom, refreshCustom }: PageProps) {
+export function Customize({ cw, settings, custom, refreshCustom, status }: PageProps) {
   const w = cw.customize
   const words = useWords()
   // What the last add did, shown under the section it added to.
@@ -100,7 +100,7 @@ export function Customize({ cw, settings, custom, refreshCustom }: PageProps) {
 
   return (
     <Panel place="page" title={w.title} sub={w.sub}>
-      <TruckProfiles status={arguments[0].status} />
+      <TruckProfiles status={status} />
       <Group title={w.wallpapers} place={4}>
         <div className="cz-wallpapers">
           {wallpapers.map((wallpaper) => (
