@@ -33,7 +33,7 @@
     }
   },
   "bundle": {
-    "active": false,
+    "active": true,
     "publisher": "El Abuelo Streaming",
     "copyright": "Copyright © 2026 El Abuelo Streaming. CabinOS is distributed under GPL-3.0-or-later and retains applicable third-party notices.",
     "category": "Game",
@@ -50,6 +50,12 @@
       "../target/release/cabinos.dll": "cabinos.dll",
       "../target/release/cabinos-probe.exe": "cabinos-probe.exe",
       "../target/release/cabinos-maps.exe": "cabinos-maps.exe"
+    },
+    "targets": [
+      "nsis"
+    ],
+    "nsis": {
+      "installMode": "currentUser"
     }
   },
   "plugins": {
