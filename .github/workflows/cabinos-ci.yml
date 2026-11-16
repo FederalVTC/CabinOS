@@ -49,8 +49,6 @@ jobs:
       - name: Build UI
         run: npm run build --prefix ui
 
-      - name: Build native CabinOS resources
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File tools/build-release.ps1 -SkipUi
 
       - name: Run Rust workspace tests
         run: cargo test --workspace --locked
