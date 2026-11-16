@@ -1790,7 +1790,9 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                     log!("speakers: {id} ({plate}): no coach body on {} axles", truck.axles);
                 }
                 player_watch.truck(truck);
-                let message = serde_json::json!({ "type": "truck", "data": truck });
+                // The cabin needs the same safe identity as the companion to select per-truck profiles.
+                // active_truck hashes the local plate and never sends the plate itself.
+                let message = serde_json::json!({ "type": "truck", "data": active_truck(truck) });
                 let _ = webview.post_json(&message.to_string());
             }
             if let Some(job) = plugin.job.read()
