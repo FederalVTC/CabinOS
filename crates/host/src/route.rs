@@ -1133,7 +1133,6 @@ mod tests {
         let mut saved = profile.clone();
         saved.last_saved = Some(std::time::SystemTime::now());
         assert_eq!(JunctionFiles::of(running, Some(&(set_up.clone(), saved))), files);
-        let profile_again = profile.clone();
         let mut other = profile;
         other.mods.push(a_mod("turkey", &["europe"], true));
         assert_ne!(JunctionFiles::of(running, Some(&(set_up.clone(), other))), files);
