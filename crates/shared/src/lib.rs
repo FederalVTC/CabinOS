@@ -27,7 +27,7 @@ use windows::core::HSTRING;
 /// bridge is laid out as whichever opened it first; one of another version, still held by a game or an app,
 /// would keep its layout until both are gone). [`BridgeMapping::matches`] still guards it.
 pub fn bridge_name() -> String {
-    format!("Local\\WestPlay.Bridge.v{BRIDGE_VERSION}")
+    format!("Local\\CabinOS.Bridge.v{BRIDGE_VERSION}")
 }
 pub const BRIDGE_MAGIC: u32 = u32::from_le_bytes(*b"WPB7");
 pub const BRIDGE_VERSION: u32 = 28;
@@ -113,8 +113,8 @@ pub fn tablet_layout() -> usize {
 /// ATS).
 pub fn mod_file(game_id: &str) -> &'static str {
     match game_id {
-        "ats" => "westplay_ats.scs",
-        _ => "westplay.scs",
+        "ats" => "cabinos_ats.scs",
+        _ => "cabinos.scs",
     }
 }
 
@@ -124,8 +124,8 @@ pub fn mod_file(game_id: &str) -> &'static str {
 /// by setup with the mod, read by the plugin as the truck changes.
 pub fn tablet_apart_file(game_id: &str) -> &'static str {
     match game_id {
-        "ats" => "tablet_apart_ats.txt",
-        _ => "tablet_apart.txt",
+        "ats" => "cabinos_tablet_apart_ats.txt",
+        _ => "cabinos_tablet_apart.txt",
     }
 }
 
@@ -251,7 +251,7 @@ pub const FRAME_KEY: u64 = 0;
 
 /// Name of the shared frame texture. The generation changes whenever the app recreates the texture.
 pub fn frame_texture_name(generation: u32) -> String {
-    format!("Local\\WestPlay.Frame.v8.{generation}")
+    format!("Local\\CabinOS.Frame.v8.{generation}")
 }
 
 #[repr(C)]
@@ -914,10 +914,10 @@ mod tests {
     #[test]
     fn each_game_has_its_own_mod_and_tablet_list() {
         // ETS2's named as before ATS: setups made before it keep theirs.
-        assert_eq!(super::mod_file("eut2"), "westplay.scs");
-        assert_eq!(super::tablet_apart_file("eut2"), "tablet_apart.txt");
-        assert_eq!(super::mod_file("ats"), "westplay_ats.scs");
-        assert_eq!(super::tablet_apart_file("ats"), "tablet_apart_ats.txt");
+        assert_eq!(super::mod_file("eut2"), "cabinos.scs");
+        assert_eq!(super::tablet_apart_file("eut2"), "cabinos_tablet_apart.txt");
+        assert_eq!(super::mod_file("ats"), "cabinos_ats.scs");
+        assert_eq!(super::tablet_apart_file("ats"), "cabinos_tablet_apart_ats.txt");
     }
 
     #[test]
@@ -939,7 +939,7 @@ mod tests {
 
     #[test]
     fn the_bridges_name_carries_its_version() {
-        assert_eq!(super::bridge_name(), format!("Local\\WestPlay.Bridge.v{}", super::BRIDGE_VERSION));
+        assert_eq!(super::bridge_name(), format!("Local\\CabinOS.Bridge.v{}", super::BRIDGE_VERSION));
     }
 
     use super::*;
