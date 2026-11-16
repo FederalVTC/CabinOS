@@ -20,7 +20,7 @@ use tauri::{AppHandle, Emitter, Manager, RunEvent, State, WebviewWindow};
 use westplay_host::maps::SetUpGame;
 use westplay_host::settings::{Settings, SettingsFile, SharedSettings};
 use westplay_host::{
-    AccountAction, AccountRequests, BrowserGone, Config, Content, OpenRequest, SCREEN_HEIGHT, SCREEN_WIDTH, Status,
+    AccountAction, AccountRequests, ActiveTruck, BrowserGone, Config, Content, OpenRequest, SCREEN_HEIGHT, SCREEN_WIDTH, Status,
 };
 
 struct Host {
@@ -266,6 +266,7 @@ fn main() {
             }
             let config_dir = app.path().app_config_dir()?;
             let profiles = profiles::Profiles::load(&app.path().app_local_data_dir()?.join("profiles"))?;
+            let profiles_for_host = profiles.clone();
             app.manage(profiles);
             let file = SettingsFile::in_dir(&config_dir);
             let shared = Arc::new(SharedSettings::new(file.load()));
@@ -281,6 +282,7 @@ fn main() {
                 accounts.clone(),
                 shared.clone(),
                 setup.game(),
+                profiles_for_host,
                 Looks { config_dir: config_dir.clone(), customize_changed: customize.changed.clone() },
             )?;
             app.manage(customize);
@@ -341,6 +343,7 @@ fn start_host(
     accounts: Arc<AccountRequests>,
     settings: Arc<SharedSettings>,
     game: Arc<SetUpGame>,
+    profiles: profiles::Profiles,
     looks: Looks,
 ) -> Result<Host, Box<dyn std::error::Error>> {
     let content = cabin_content(app);
@@ -368,6 +371,7 @@ fn start_host(
             let status_events = events.clone();
             let (settings_events, settings_dir) = (events.clone(), looks.config_dir.clone());
             let customize_changed = looks.customize_changed.clone();
+            let profile_store = profiles.clone();
             let run = std::thread::Builder::new().name("westplay-host".into()).spawn(move || {
                 let config = Config {
                     width: SCREEN_WIDTH,
@@ -388,6 +392,18 @@ fn start_host(
                             westplay_host::log!("[settings] couldn't save the cab's change: {error}");
                         }
                         let _ = settings_events.emit("settings-changed", settings);
+                    }),
+                    on_profile: Box::new(move |truck: Option<&ActiveTruck>| {
+                        let truck = truck?;
+                        let vehicle = profiles::VehicleIdentity {
+                            model_id: truck.id.clone(),
+                            brand_id: truck.brand_id.clone(),
+                            brand: truck.brand.clone(),
+                            model: truck.name.clone(),
+                            fingerprint: truck.fingerprint.clone(),
+                        };
+                        profile_store.for_vehicle(&vehicle).ok().flatten()
+                            .and_then(|profile| serde_json::to_value(profile).ok())
                     }),
                     customize_changed,
                 };
