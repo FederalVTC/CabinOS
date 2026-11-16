@@ -32,12 +32,9 @@ export function vehicleIdentity(truck: {
 export function matchesVehicle(profile: TruckProfile, vehicle: VehicleIdentity): boolean {
   const assigned = profile.vehicle
   if (!assigned) return false
-  // If either side has a fingerprint, both must have it: falling back here could silently
-  // match two physical trucks that share the same model.
-  if (vehicle.fingerprint || assigned.fingerprint) {
-    return Boolean(vehicle.fingerprint && assigned.fingerprint && vehicle.fingerprint === assigned.fingerprint)
-  }
-  return vehicle.modelId === assigned.modelId && vehicle.brandId === assigned.brandId
+  // Automatic matching is only safe with a fingerprint on both sides. Model and brand alone
+  // can identify several physical trucks and must never activate a profile.
+  return Boolean(vehicle.fingerprint && assigned.fingerprint && vehicle.fingerprint === assigned.fingerprint)
 }
 
 /** Only return an automatic match when exactly one custom profile identifies this truck. */
