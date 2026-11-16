@@ -1,13 +1,13 @@
-//! CabinOS's screen mod, mounted by the plugin itself (PLAN.md: the plugin mounts `westplay.scs` in every
+//! CabinOS's screen mod, mounted by the plugin itself (PLAN.md: the plugin mounts `cabinos.scs` in every
 //! mode, never shown in the Mod Manager), through the game's own mount: the function that mounts one device
 //! from a request, as the game mounts its user folder with it. The archive goes into the mod pool, first. The
 //! game's functions are found in its code by what they are (`locate`), not where one version had them, so other
 //! builds work too (1.60.1.7, the VR branch's 1.61.1.1009s); a game whose code doesn't match is left alone.
 //!
 //! Mounted once a game process (an `sdk reload` doesn't mount it again), from `Documents\WestPlay\westplay.scs`
-//! (written there by WestPlay's setup, from the player's own game), when the plugin loads, before the game
+//! (written there by CabinOS's setup, from the player's own game), when the plugin loads, before the game
 //! mounts the profile's mods; it stays through them and through a profile switch (tested 2026-10-20). Not while
-//! WestPlay 1.2's copy is still in the game's `mod` folder (the app takes it out when it installs): with both,
+//! the legacy WestPlay mod is still in the game's `mod` folder (the app takes it out when it installs): with both,
 //! the game has the screens' scripts twice and stops when a screen starts.
 //!
 //! The game finds a pool's files by the pool's index, which its mount doesn't update: the game rebuilds it after
