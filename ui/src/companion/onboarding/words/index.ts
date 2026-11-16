@@ -262,10 +262,10 @@ export function chosenLanguage(chosen: string | null | undefined, game: string |
 
 /** Replaces the inherited product name in translated UI copy while keeping the translation structure intact. */
 function cabinWords<T>(value: T): T {
-  if (typeof value === 'string') return value.replaceAll('WestPlay', 'CabinOS') as T
-  if (Array.isArray(value)) return value.map((item) => cabinWords(item)) as T
+  if (typeof value === 'string') return value.replaceAll('WestPlay', 'CabinOS') as unknown as T
+  if (Array.isArray(value)) return value.map((item) => cabinWords(item)) as unknown as T
   if (value && typeof value === 'object') {
-    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cabinWords(item)])) as T
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cabinWords(item)])) as unknown as T
   }
   return value
 }
