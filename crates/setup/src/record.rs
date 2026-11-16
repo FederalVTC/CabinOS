@@ -48,7 +48,10 @@ impl Record {
         }
         record.version = None;
         // A CabinOS setup record must never retain or act on an inherited ATS installation.
-        record.games.retain(|set_up| Game::recognise(&set_up.dir).is_some_and(|game| game.kind == Kind::Ets2));
+        record.games.retain(|set_up| {
+            Game::recognise(&set_up.dir).is_some_and(|game| game.kind == Kind::Ets2)
+                || !set_up.dir.join(Kind::Ats.executable()).is_file()
+        });
         record
     }
 
