@@ -177,4 +177,5 @@ mod tests {
         assert_eq!(record.game(Kind::Ats), None);
         assert_eq!(record.dirs(), [ets2_elsewhere.dir.clone()]);
         let _ = std::fs::remove_dir_all(&root);
+    }
 }
