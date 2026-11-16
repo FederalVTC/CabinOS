@@ -56,8 +56,10 @@ export function vehicleIdentity(truck: {
 export function matchesVehicle(profile: TruckProfile, vehicle: VehicleIdentity): boolean {
   const assigned = profile.vehicle
   if (!assigned) return false
-  if (vehicle.fingerprint && assigned.fingerprint) {
-    return vehicle.fingerprint === assigned.fingerprint
+  // If either side has a fingerprint, both must have it: falling back here could silently
+  // match two physical trucks that share the same model.
+  if (vehicle.fingerprint || assigned.fingerprint) {
+    return Boolean(vehicle.fingerprint && assigned.fingerprint && vehicle.fingerprint === assigned.fingerprint)
   }
   return vehicle.modelId === assigned.modelId && vehicle.brandId === assigned.brandId
 }
