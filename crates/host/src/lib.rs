@@ -267,6 +267,8 @@ pub struct Config {
     /// Called when the cabin page changes a setting itself (its Settings' wallpaper), after it's applied: to
     /// keep it and tell the companion.
     pub on_settings: Box<dyn FnMut(&settings::Settings) + Send>,
+    /// Resolves the one confidently matching per-truck profile, if any, whenever the active truck changes.
+    pub on_profile: Box<dyn FnMut(Option<&ActiveTruck>) -> Option<serde_json::Value> + Send>,
     /// Bumped whenever the player's wallpapers or icon sets change (`customize`): the page is told again.
     pub customize_changed: Arc<std::sync::atomic::AtomicU64>,
     /// The game CabinOS is set up in (the companion's setup sets it): its map is built for the cab.
@@ -1792,7 +1794,12 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                 player_watch.truck(truck);
                 // The cabin needs the same safe identity as the companion to select per-truck profiles.
                 // active_truck hashes the local plate and never sends the plate itself.
-                let message = serde_json::json!({ "type": "truck", "data": active_truck(truck) });
+                let active = active_truck(truck);
+                let message = serde_json::json!({ "type": "truck", "data": active });
+                let _ = webview.post_json(&message.to_string());
+                // A missing or ambiguous match sends null, so the cabin restores global defaults.
+                let profile = (config.on_profile)(active.as_ref());
+                let message = serde_json::json!({ "type": "profile", "data": profile });
                 let _ = webview.post_json(&message.to_string());
             }
             if let Some(job) = plugin.job.read()
