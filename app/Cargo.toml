@@ -1,13 +1,13 @@
 [package]
 name = "westplay-app"
-description = "WestPlay companion app: runs the in-cabin UI host and the desktop window"
+description = "CabinOS desktop companion for Euro Truck Simulator 2"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 publish.workspace = true
 
 [[bin]]
-name = "westplay"
+name = "cabinos"
 path = "src/main.rs"
 
 [build-dependencies]
