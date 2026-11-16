@@ -8,12 +8,12 @@ import { loadSeaTiles, seaTilesUrl } from './seaTiles'
  * profile they play: crates/host maps.rs): vector tiles, and a small manifest with their zooms and bounds,
  * where the map starts, and the place names.
  *
- * In WestPlay the host names the map's folder (`map` messages), served at `https://westplay.maps/`; it names
+ * In WestPlay the host names the map's folder (`map` messages), served at `https://cabinos.maps/`; it names
  * another when the player plays another profile (another map, other map mods), and none until a map is built.
  * A plain browser (development) has the map exported into public/dev-map/ (git-ignored, never shipped).
  */
 const DEV_MAP = '/dev-map'
-const MAPS = 'https://westplay.maps'
+const MAPS = 'https://cabinos.maps'
 
 export interface MapLabel {
   /** The place's own name, in its own language and script. */
