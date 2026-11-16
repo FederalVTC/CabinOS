@@ -302,9 +302,19 @@ const WORDS: Record<string, CompanionWords> = Object.fromEntries(
   ),
 )
 
+/** Replaces the inherited product name in translated UI copy while keeping the translation structure intact. */
+function cabinWords<T>(value: T): T {
+  if (typeof value === 'string') return value.replaceAll('WestPlay', 'CabinOS') as T
+  if (Array.isArray(value)) return value.map((item) => cabinWords(item)) as T
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cabinWords(item)])) as T
+  }
+  return value
+}
+
 /** The companion's words in the game's language `code` (`tr_tr`), English for one without. */
 export function companionWords(code: string): CompanionWords {
-  return WORDS[code] ?? WORDS.en_us
+  return cabinWords(WORDS[code] ?? WORDS.en_us)
 }
 
 export function companionLanguages(): string[] {
