@@ -80,7 +80,7 @@ fn plugin_file(app: &AppHandle) -> Option<PathBuf> {
 }
 
 /// CabinOS's map builder (westplay_setup::map_builder): shipped beside the app (its resources, or the app's own
-/// folder: also where a development build's is, once built with `cargo build -p westplay-maps`); `None`: maps are
+/// folder: also where a development build's is, once built with `cargo build -p cabinos-maps`); `None`: maps are
 /// built in CabinOS's own process.
 pub fn map_builder_file(app: &AppHandle) -> Option<PathBuf> {
     let file = westplay_setup::map_builder::FILE_NAME;
