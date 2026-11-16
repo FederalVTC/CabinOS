@@ -3,15 +3,16 @@ import type { HostStatus } from './useHostStatus'
 
 /** An install of the game. Mirrors the app's `setup::GameInfo`. */
 /** CabinOS supports ETS2 only. */
-export type GameKind = 'ets2'
+export type GameKind = 'ets2' | 'ats'
 
 /** Each game's name, as it's known in every language (a title, never in a sentence: names are declined). */
 export const GAME_NAMES: Record<GameKind, string> = {
   ets2: 'Euro Truck Simulator 2',
+  ats: 'American Truck Simulator',
 }
 
 /** Each game's short name, as players say it (the list's line under Setup). */
-export const GAME_SHORT_NAMES: Record<GameKind, string> = { ets2: 'ETS2' }
+export const GAME_SHORT_NAMES: Record<GameKind, string> = { ets2: 'ETS2', ats: 'ATS' }
 
 /** The only game supported by CabinOS. */
 export const GAME_KINDS: GameKind[] = ['ets2']
