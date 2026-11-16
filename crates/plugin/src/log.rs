@@ -1,4 +1,4 @@
-//! File logging to `Documents\WestPlay\logs`. The SCS log callback may only be used on the game's main
+//! File logging to `Documents\CabinOS\logs`. The SCS log callback may only be used on the game's main
 //! thread during SDK callbacks, so everything else (render-thread hooks) goes through this file logger.
 //!
 //! The game's threads never touch the disk: a line logged is queued, and a thread of the plugin's own
