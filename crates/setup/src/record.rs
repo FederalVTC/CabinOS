@@ -1,7 +1,5 @@
-//! What WestPlay's setup did, kept between runs (`setup.json`, in WestPlay's config folder): the games it set
-//! WestPlay up in (one a game: ETS2's, ATS's), with the version of WestPlay that put its plugin and mod into each,
-//! and whether the player went through the companion's onboarding to its end. Nothing about the player: no
-//! profile, no mod, no account.
+//! What CabinOS setup did, kept between runs (`setup.json`): the ETS2 install it configured and whether onboarding
+//! was completed. Inherited ATS entries are ignored and removed from CabinOS's own setup record.
 
 use std::io;
 use std::path::{Path, PathBuf};
@@ -49,6 +47,8 @@ impl Record {
             record.games.push(SetUp { dir, version: record.version.take() });
         }
         record.version = None;
+        // A CabinOS setup record must never retain or act on an inherited ATS installation.
+        record.games.retain(|set_up| Game::recognise(&set_up.dir).is_some_and(|game| game.kind == Kind::Ets2));
         record
     }
 
@@ -78,6 +78,9 @@ impl Record {
     /// `game` set up by WestPlay `version`: in place of the install of its game set up before (another of the
     /// same game's, or itself), the others kept.
     pub fn set_up(&mut self, game: &Game, version: &str) {
+        if game.kind != Kind::Ets2 {
+            return;
+        }
         self.games.retain(|set_up| {
             set_up.dir != game.dir && Game::recognise(&set_up.dir).is_none_or(|other| other.kind != game.kind)
         });
@@ -86,7 +89,11 @@ impl Record {
 
     /// The games' folders, for the maps (`maps::SetUpGame`).
     pub fn dirs(&self) -> Vec<PathBuf> {
-        self.games.iter().map(|set_up| set_up.dir.clone()).collect()
+        self.games
+            .iter()
+            .filter(|set_up| Game::recognise(&set_up.dir).is_some_and(|game| game.kind == Kind::Ets2))
+            .map(|set_up| set_up.dir.clone())
+            .collect()
     }
 }
 
@@ -135,7 +142,7 @@ mod tests {
     }
 
     #[test]
-    fn a_game_set_up_again_takes_the_place_of_its_own_only() {
+    fn only_ets2_can_be_kept_in_the_setup_record() {
         let root = std::env::temp_dir().join(format!("westplay-record-games-{}", std::process::id()));
         let install = |name: &str, exe: &str| {
             let dir = root.join(name);
@@ -149,16 +156,18 @@ mod tests {
         let mut record = Record::default();
         record.set_up(&ets2, "2.1.4");
         record.set_up(&ats, "2.2.0");
-        assert_eq!(record.games().iter().map(|game| game.kind).collect::<Vec<_>>(), [Kind::Ets2, Kind::Ats]);
+        assert_eq!(record.games().iter().map(|game| game.kind).collect::<Vec<_>>(), [Kind::Ets2]);
+        assert_eq!(record.games.len(), 1);
         assert_eq!(record.version_of(&ets2), Some("2.1.4"));
         // Set up again: its version now.
         record.set_up(&ets2, "2.2.0");
         assert_eq!(record.version_of(&ets2), Some("2.2.0"));
         assert_eq!(record.games.len(), 2);
-        // Another install of ETS2: in place of the first, ATS's kept.
+        // Another install of ETS2 replaces the previous ETS2 install; ATS never enters the record.
         record.set_up(&ets2_elsewhere, "2.2.0");
         assert_eq!(record.game(Kind::Ets2).map(|game| game.dir), Some(ets2_elsewhere.dir.clone()));
-        assert_eq!(record.game(Kind::Ats).map(|game| game.dir), Some(ats.dir.clone()));
+        assert_eq!(record.game(Kind::Ats), None);
+        assert_eq!(record.dirs(), [ets2_elsewhere.dir.clone()]);
         let _ = std::fs::remove_dir_all(&root);
     }
 }
