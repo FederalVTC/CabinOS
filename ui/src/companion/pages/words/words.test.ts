@@ -31,6 +31,6 @@ describe('the companion’s words', () => {
   })
 
   it('falls back to English for a language the game doesn’t have', () => {
-    expect(companionWords('xx_xx')).toBe(companionWords('en_us'))
+    expect(companionWords('xx_xx')).toEqual(companionWords('en_us'))
   })
 })
