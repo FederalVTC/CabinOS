@@ -76,7 +76,7 @@ unsafe fn init(version: u32, params: *const TelemetryInitParamsV100) -> i32 {
         let _ = GAME_ID.set(game_id.clone());
         let game_version = params.common.game_version;
         log!(
-            "westplay {} loaded: {game_name} ({game_id}), telemetry game version {}.{}, api {}.{}",
+            "CabinOS {} loaded: {game_name} ({game_id}), telemetry game version {}.{}, api {}.{}",
             env!("CARGO_PKG_VERSION"),
             scs::major_version(game_version),
             scs::minor_version(game_version),
@@ -109,7 +109,7 @@ unsafe fn init(version: u32, params: *const TelemetryInitParamsV100) -> i32 {
         };
 
         if let Some(game_log) = params.common.log
-            && let Ok(message) = CString::new(format!("[westplay] {status}; log: {}", log::log_dir().display()))
+            && let Ok(message) = CString::new(format!("[CabinOS] {status}; log: {}", log::log_dir().display()))
         {
             game_log(SCS_LOG_TYPE_MESSAGE, message.as_ptr());
         }
