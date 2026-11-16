@@ -3,7 +3,7 @@
 //! so without the file what the host says (a service that failed, the game's memory not found) would be lost.
 //! Where Documents refuses it, it's kept in WestPlay's own data folder instead, saying why ([`init`]). The run
 //! before's is kept beside it as `app.old.log`: a player who starts WestPlay again after it closed would otherwise
-//! send the new run's log, the crash's gone (2026-11-06). Its first line is WestPlay's version, and a native crash
+//! send the new run's log, the crash's gone (2026-11-06). Its first line is CabinOS's version, and a native crash
 //! is its last ([`catch_crashes`]).
 //! Never anything of the player's accounts or what they play: errors, and how long things took.
 
@@ -39,9 +39,9 @@ pub fn dir() -> Option<PathBuf> {
 }
 
 /// Where the log is kept when Documents refuses it: WestPlay's own data folder (`%LOCALAPPDATA%\app.westplay`,
-/// where the screens' browsers and the maps are, so WestPlay can write there whenever it runs at all). A
+/// where the screens' browsers and the maps are, so CabinOS can write there whenever it runs at all). A
 /// player's ransomware protection (Windows Security's Controlled folder access, 2026-10-24) let the game write
-/// its `plugin.log` in Documents but not WestPlay: there was no `app.log`, and nothing said why.
+/// its `plugin.log` in Documents but not CabinOS: there was no `app.log`, and nothing said why.
 fn fallback_dir() -> Option<PathBuf> {
     Some(PathBuf::from(std::env::var_os("LOCALAPPDATA")?).join("com.elabuelostreaming.cabinos").join("logs"))
 }
@@ -52,7 +52,7 @@ pub fn place() -> Option<&'static Path> {
 }
 
 /// Starts the log file, empty (lines before it are only printed), in Documents; if that's refused, in
-/// WestPlay's own folder, saying what Documents answered. Its first line is WestPlay's version. Where neither can
+/// CabinOS's own folder, saying what Documents answered. Its first line is CabinOS's version. Where neither can
 /// be written, lines are only printed. A panic in any thread is kept in it too (`log_panics`), and a native
 /// crash ([`catch_crashes`]).
 pub fn init() {
