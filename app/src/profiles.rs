@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde::{Deserialize, Serialize};
@@ -25,7 +25,10 @@ pub struct VehicleIdentity {
 #[serde(rename_all = "camelCase", default)]
 pub struct ProfileAppearance {
     pub theme: String,
+    pub mode: String,
     pub wallpaper: Option<String>,
+    pub icon_set: Option<String>,
+    pub icon_style: String,
     pub accent_color: String,
 }
 
@@ -33,7 +36,10 @@ impl Default for ProfileAppearance {
     fn default() -> Self {
         Self {
             theme: "electric".into(),
+            mode: "auto".into(),
             wallpaper: None,
+            icon_set: None,
+            icon_style: "auto".into(),
             accent_color: "#35D9FF".into(),
         }
     }
@@ -72,15 +78,16 @@ impl TruckProfile {
 }
 
 /// The profile store's directory and a lock serialising changes and reads.
+#[derive(Clone)]
 pub struct Profiles {
     dir: PathBuf,
-    lock: Mutex<()>,
+    lock: Arc<Mutex<()>>,
 }
 
 impl Profiles {
     pub fn load(dir: &Path) -> std::io::Result<Self> {
         std::fs::create_dir_all(dir)?;
-        let store = Self { dir: dir.to_path_buf(), lock: Mutex::new(()) };
+        let store = Self { dir: dir.to_path_buf(), lock: Arc::new(Mutex::new(())) };
         store.recover_backups()?;
         let default_path = store.path("default");
         if !default_path.exists() {
