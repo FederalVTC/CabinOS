@@ -5,7 +5,7 @@ import { ownName } from '../languages'
 import { GLOW, useScreen, useScreenAt } from '../room/screen'
 import { checkGame, GAME_KINDS, GAME_NAMES, type GameInfo, type InstallReport, installIntoGame } from '../setup'
 import { allChecked, type PageProps, useGameCheck } from './page'
-import { profilesAssign, profilesCreate, profilesDelete, profilesList, vehicleIdentity, type TruckProfile } from '../profiles'
+import { profilesAssign, profilesCreate, profilesDelete, profilesList, profilesUpdate, vehicleIdentity, type TruckProfile } from '../profiles'
 
 /**
  * Where WestPlay is installed and how to put it right: each game it's in (ETS2's, ATS's), the plugin as it is
@@ -26,6 +26,8 @@ export function Setup(props: PageProps) {
   const [installError, setInstallError] = useState<string | null>(null)
   const [profiles, setProfiles] = useState<TruckProfile[]>([])
   const [profileName, setProfileName] = useState('')
+  const [editingProfileId, setEditingProfileId] = useState<string | null>(null)
+  const [editingProfileName, setEditingProfileName] = useState('')
   const [profilesBusy, setProfilesBusy] = useState(false)
   const [profileError, setProfileError] = useState<string | null>(null)
   const truck = props.status?.truck ?? null
@@ -41,6 +43,21 @@ export function Setup(props: PageProps) {
     try {
       await profilesCreate(profileName, currentVehicle)
       setProfileName('')
+      await refreshProfiles()
+    } catch (error) {
+      setProfileError(String(error))
+    } finally {
+      setProfilesBusy(false)
+    }
+  }
+  const saveProfileName = async (profile: TruckProfile) => {
+    if (!editingProfileName.trim()) return
+    setProfilesBusy(true)
+    setProfileError(null)
+    try {
+      await profilesUpdate({ ...profile, name: editingProfileName })
+      setEditingProfileId(null)
+      setEditingProfileName('')
       await refreshProfiles()
     } catch (error) {
       setProfileError(String(error))
@@ -178,11 +195,36 @@ export function Setup(props: PageProps) {
         </div>
         {profiles.map((profile) => (
           <div className="cp-profile-entry" key={profile.id}>
-            <Row
-              title={profile.name}
-              detail={profile.vehicle ? `${profile.vehicle.brand} ${profile.vehicle.model} · ${profile.vehicle.modelId}` : 'Perfil predeterminado o sin camión asignado'}
-              value={activeProfile?.id === profile.id ? 'En uso' : profile.id === 'default' ? 'Predeterminado' : undefined}
-            />
+            {editingProfileId === profile.id ? (
+              <div className="cp-profile-edit">
+                <input
+                  aria-label="Nuevo nombre del perfil"
+                  value={editingProfileName}
+                  onChange={(event) => setEditingProfileName(event.target.value)}
+                  maxLength={48}
+                  autoFocus
+                />
+                <Button onClick={() => void saveProfileName(profile)} busy={profilesBusy} disabled={!editingProfileName.trim()}>
+                  Guardar
+                </Button>
+                <Button glass onClick={() => { setEditingProfileId(null); setEditingProfileName('') }} disabled={profilesBusy}>
+                  Cancelar
+                </Button>
+              </div>
+            ) : (
+              <Row
+                title={profile.name}
+                detail={profile.vehicle ? `${profile.vehicle.brand} ${profile.vehicle.model} · ${profile.vehicle.modelId}` : 'Perfil predeterminado o sin camión asignado'}
+                value={activeProfile?.id === profile.id ? 'En uso' : profile.id === 'default' ? 'Predeterminado' : undefined}
+              />
+            )}
+            {profile.id !== 'default' && editingProfileId !== profile.id && (
+              <Row
+                title="Editar nombre del perfil"
+                link
+                onClick={() => { setEditingProfileId(profile.id); setEditingProfileName(profile.name) }}
+              />
+            )}
             {truck && profile.id !== 'default' && activeProfile?.id !== profile.id && (
               <Row title="Asignar camión actual a este perfil" link onClick={profilesBusy ? undefined : () => void assignProfile(profile.id)} />
             )}
