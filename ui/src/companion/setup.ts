@@ -120,7 +120,7 @@ export const installIntoGame = (dir: string, administrator: boolean) =>
 export const finishSetup = () => call<void>('finish_setup')
 
 /** Where the companion serves the player's maps (app/src/main.rs, `westplay-maps`). */
-const MAPS = 'http://westplay-maps.localhost'
+const MAPS = 'http://cabinos-maps.localhost'
 
 export function defaultMapAddress(status: HostStatus | null): { base: string; built: number | null } | null {
   return status?.mapFolder ? { base: `${MAPS}/${encodeURIComponent(status.mapFolder)}`, built: status.mapBuilt } : null
