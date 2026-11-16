@@ -191,10 +191,10 @@ unsafe fn init(host: *const Host, desc: *mut PluginDesc) -> bool {
         if let Some(desc) = desc.as_mut()
             && desc.size as usize >= size_of::<PluginDesc>()
         {
-            fill(&mut desc.name, "WestPlay");
-            fill(&mut desc.author, "WestPlay");
+            fill(&mut desc.name, "CabinOS");
+            fill(&mut desc.author, "El Abuelo Streaming");
             fill(&mut desc.version, env!("CARGO_PKG_VERSION"));
-            fill(&mut desc.description, "The truck's screen as CarPlay: shows the players around you on its map.");
+            fill(&mut desc.description, "Pantalla inteligente de cabina con información de jugadores y navegación para ETS2.");
         }
         let declared = declare_version(host.ctx, SDK_VERSION);
         if declared != RESULT_OK {
@@ -238,7 +238,7 @@ unsafe fn init(host: *const Host, desc: *mut PluginDesc) -> bool {
             }
         }
         streamed.remove(&0);
-        let text = format!("WestPlay {}: the players around you go to its map", env!("CARGO_PKG_VERSION"));
+        let text = format!("CabinOS {}: jugadores cercanos disponibles en el mapa de cabina", env!("CARGO_PKG_VERSION"));
         (core.log_message)(host.ctx, LOG_INFO, SdkString { ptr: text.as_ptr().cast(), size: text.len() as u32 });
         log!("TruckersMP: SDK session open, {} players streamed in", streamed.len());
         *session() = Some(Session { ctx: host.ctx, core, players, handle, vehicle, network, streamed });
