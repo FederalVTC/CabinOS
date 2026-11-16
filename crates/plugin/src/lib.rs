@@ -1,6 +1,6 @@
-//! WestPlay SCS SDK plugin (`westplay.dll`).
+//! CabinOS SCS SDK plugin (`cabinos.dll`).
 //!
-//! Loaded by ETS2/ATS from `bin/win_x64/plugins`. The game calls `scs_telemetry_init` /
+//! Loaded by Euro Truck Simulator 2 from `bin/win_x64/plugins`. The game calls `scs_telemetry_init` /
 //! `scs_telemetry_shutdown` on its main thread, possibly several times per process (`sdk reload`). Under
 //! TruckersMP its client loads it too, as one of its own plugins (`truckersmp_init`: `truckersmp`).
 
@@ -26,8 +26,7 @@ use std::sync::OnceLock;
 
 use scs::{SCS_LOG_TYPE_MESSAGE, SCS_RESULT_OK, SCS_RESULT_UNSUPPORTED, TelemetryInitParamsV100};
 
-/// The game's id, as the SDK gave it at the first load (`eut2`, `ats`): which game's mod and files are WestPlay's
-/// here.
+/// The ETS2 id (`eut2`) as supplied by the SDK on the first successful load.
 static GAME_ID: OnceLock<String> = OnceLock::new();
 
 /// The game's id ([`GAME_ID`]; empty before the plugin is loaded).
@@ -69,6 +68,11 @@ unsafe fn init(version: u32, params: *const TelemetryInitParamsV100) -> i32 {
         log::init();
         let game_name = cstr(params.common.game_name);
         let game_id = cstr(params.common.game_id);
+        // The SDK uses `ats` for American Truck Simulator. Refuse it before registering telemetry or installing
+        // any hooks: CabinOS is an ETS2-only integration, even if its DLL is copied into another game's folder.
+        if game_id != "eut2" {
+            return SCS_RESULT_UNSUPPORTED;
+        }
         let _ = GAME_ID.set(game_id.clone());
         let game_version = params.common.game_version;
         log!(
@@ -82,7 +86,7 @@ unsafe fn init(version: u32, params: *const TelemetryInitParamsV100) -> i32 {
 
         telemetry::register(params);
         camera::locate();
-        // WestPlay's screen mod, before the game mounts the profile's mods.
+        // CabinOS's screen mod, before the game mounts the profile's mods.
         mod_mount::mount(&game_id);
 
         // Screen interaction is optional: without it the screens still work, they just can't be used.
