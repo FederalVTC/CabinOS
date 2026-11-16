@@ -25,6 +25,10 @@ CabinOS es un proyecto independiente para Windows orientado exclusivamente a **E
 - American Truck Simulator queda fuera del alcance de CabinOS.
 - La compatibilidad final depende de la versión de ETS2, los camiones, los mods y las pruebas reales de integración.
 
+## Instalaciones anteriores de WestPlay
+
+CabinOS utiliza su propio complemento `cabinos.dll`, su mod `cabinos.scs`, su puente local y su carpeta `Documents/CabinOS`. No sobrescribe archivos ni configuraciones de WestPlay. Como ambos complementos interceptan la pantalla del juego, CabinOS bloquea la instalación si detecta el antiguo `westplay.dll`; primero hay que desinstalar ese complemento. Si el antiguo `westplay.scs` permanece en la carpeta de mods de ETS2, también debe retirarse antes de usar la pantalla de cabina de CabinOS.
+
 ## Arquitectura heredada y componentes
 
 CabinOS conserva como punto de partida los componentes técnicos necesarios para la integración: aplicación Tauri, interfaz React, host WebView2 fuera de pantalla, plugin nativo basado en el SDK de SCS, captura gráfica, entrada y telemetría, además del procesamiento local de mapas. Estos componentes se auditarán y adaptarán de forma gradual; no se reemplazarán a ciegas.
