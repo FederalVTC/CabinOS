@@ -38,7 +38,7 @@ jobs:
           targets: x86_64-pc-windows-msvc
 
       - name: Install desktop CLI and UI dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Install locked UI dependencies
         run: npm ci --prefix ui
