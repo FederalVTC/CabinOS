@@ -91,7 +91,7 @@ export const useSafari = create<SafariState>()(
       noDownload: null,
     }),
     {
-      name: 'westplay.safari',
+      name: 'cabinos.safari',
       version: 1,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
@@ -406,5 +406,5 @@ export function receivePlaying(playing: boolean): void {
 
 /** Where a tab's picture is (the host's `safari::TABS_HOST`), or `null` with none yet. */
 export function pictureOf(tab: number, version: number | undefined): string | null {
-  return version ? `https://westplay.safari-tabs/tab-${tab}.png?v=${version}` : null
+  return version ? `https://cabinos.safari-tabs/tab-${tab}.png?v=${version}` : null
 }
