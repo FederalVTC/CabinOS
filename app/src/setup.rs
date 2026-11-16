@@ -598,6 +598,7 @@ fn install_plugin(game: &Game, ours: &Path, administrator: bool) -> PluginOutcom
         Err(InstallError::InUse) => PluginOutcome::InUse,
         Err(InstallError::NeedsAdministrator) => PluginOutcome::NeedsAdministrator,
         Err(InstallError::Declined) => PluginOutcome::Declined,
+        Err(InstallError::LegacyPluginPresent) => PluginOutcome::Failed { error: InstallError::LegacyPluginPresent.to_string() },
         Err(InstallError::Io(error)) => PluginOutcome::Failed { error: error.to_string() },
     }
 }
@@ -676,6 +677,7 @@ pub async fn uninstall_from_game(administrator: bool, store: State<'_, SetupStor
                 Err(InstallError::InUse) => PluginOutcome::InUse,
                 Err(InstallError::NeedsAdministrator) => PluginOutcome::NeedsAdministrator,
                 Err(InstallError::Declined) => PluginOutcome::Declined,
+                Err(InstallError::LegacyPluginPresent) => PluginOutcome::Failed { error: InstallError::LegacyPluginPresent.to_string() },
                 Err(InstallError::Io(error)) => PluginOutcome::Failed { error: error.to_string() },
             };
             if matches!(plugin, PluginOutcome::Installed) {
