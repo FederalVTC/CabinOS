@@ -63,6 +63,10 @@ export interface TruckInfo {
   id: string
   /** Display model name, localized by the game, e.g. "XG+". */
   name: string
+  /** Local hash of model id and licence plate; the plate itself is never sent. */
+  fingerprint?: string | null
+  /** True only when a unique local fingerprint could be calculated. */
+  identityConfident?: boolean
 }
 
 /** The player's job (`westplay_shared::JobInfo`): names localized by the game. */
@@ -93,7 +97,7 @@ export type KeybindAction =
 
 export type HostMessage =
   | { type: 'telemetry'; data: Telemetry }
-  | { type: 'truck'; data: TruckInfo }
+  | { type: 'truck'; data: TruckInfo | null }
   | { type: 'job'; data: JobInfo }
   /** `null` until the game has drawn a WestPlay screen. Checked against the known ids on arrival. */
   | { type: 'screen'; layout: string | null }
