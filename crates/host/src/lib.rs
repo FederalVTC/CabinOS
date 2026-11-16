@@ -1,4 +1,4 @@
-//! WestPlay host: renders the in-cabin UI in an offscreen WebView2 and feeds it to the game plugin.
+//! CabinOS host: renders the in-cabin UI in an offscreen WebView2 and feeds it to the game plugin.
 //!
 //! [`run`] owns one STA thread: it pumps window messages for WebView2, keeps the capture pipeline on the
 //! game's GPU, forwards telemetry from the bridge to the page, and beats the host heartbeat.
@@ -138,7 +138,7 @@ pub struct Status {
     /// Which game is connected (`None`: none, or a plugin that doesn't say).
     pub game: Option<westplay_setup::game::Kind>,
     pub screen_drawing: bool,
-    /// Whether the truck the player is in is one WestPlay shows in, as the plugin last saw (`None`: not known yet,
+    /// Whether the truck the player is in is one CabinOS shows in, as the plugin last saw (`None`: not known yet,
     /// or no game).
     pub truck_supported: Option<bool>,
     /// The active truck's safe identity for per-vehicle profiles (no raw licence plate).
@@ -147,11 +147,11 @@ pub struct Status {
     /// save's fitted parts). `None` in a truck, with no game, or before the coach's parts are read: the companion's
     /// Coach speakers greyed out then (owner 2026-11-13).
     pub coach_speakers: Option<u32>,
-    /// Whether the game runs as administrator: WestPlay can't read its route, guidance or weather then
+    /// Whether the game runs as administrator: CabinOS can't read its route, guidance or weather then
     /// ([`is_elevated`]), and the player is told to start it normally.
     pub game_elevated: bool,
-    /// Whether WestPlay is open on the truck's screen (otherwise the truck's original screen shows, with
-    /// WestPlay's button to come back), as the cabin page last said; `None` until it has.
+    /// Whether CabinOS is open on the truck's screen (otherwise the truck's original screen shows, with
+    /// CabinOS's button to come back), as the cabin page last said; `None` until it has.
     pub westplay_open: Option<bool>,
     /// Whether YouTube is signed in, as its page last said (`None`: not known, YouTube not run yet), and
     /// whether Google's sign-in window is open. Nothing else of the account.
@@ -166,7 +166,7 @@ pub struct Status {
     pub apple_music_signing_in: bool,
     /// The map of the profile played: ready, being built, waiting for the game to close...
     pub map: maps::MapStatus,
-    /// The map the cab shows: its folder in WestPlay's maps, and when it was built (the companion's
+    /// The map the cab shows: its folder in CabinOS's maps, and when it was built (the companion's
     /// onboarding shows it too).
     pub map_folder: Option<String>,
     pub map_built: Option<u64>,
@@ -224,9 +224,9 @@ impl AccountRequest {
     }
 }
 
-/// A request to open or close WestPlay on the truck's screen (the companion window's switch), from any
+/// A request to open or close CabinOS on the truck's screen (the companion window's switch), from any
 /// thread, for the host to pass on to the cabin page, which owns that state (its sidebar's truck button and
-/// its WestPlay button change it too).
+/// its CabinOS button change it too).
 #[derive(Debug, Default)]
 pub struct OpenRequest(AtomicU8);
 
@@ -235,7 +235,7 @@ impl OpenRequest {
     const CLOSE: u8 = 1;
     const OPEN: u8 = 2;
 
-    /// Asks for WestPlay to be opened or closed (replacing a request not passed on yet).
+    /// Asks for CabinOS to be opened or closed (replacing a request not passed on yet).
     pub fn request(&self, open: bool) {
         self.0.store(if open { Self::OPEN } else { Self::CLOSE }, Ordering::Release);
     }
@@ -256,11 +256,11 @@ pub struct Config {
     pub content: Content,
     /// WebView2 user data (cache, cookies) lives here.
     pub data_dir: PathBuf,
-    /// Requests to open or close WestPlay on the truck's screen, from any thread.
+    /// Requests to open or close CabinOS on the truck's screen, from any thread.
     pub open_request: Arc<OpenRequest>,
     /// Signing YouTube or Spotify in or out (or finding out whether it is), from the companion window.
     pub accounts: Arc<AccountRequests>,
-    /// Called on the host thread about once per second, and right after WestPlay opens or closes.
+    /// Called on the host thread about once per second, and right after CabinOS opens or closes.
     pub on_status: Box<dyn FnMut(&Status) + Send>,
     /// The player's settings; changes are applied as they happen.
     pub settings: Arc<SharedSettings>,
@@ -269,10 +269,10 @@ pub struct Config {
     pub on_settings: Box<dyn FnMut(&settings::Settings) + Send>,
     /// Bumped whenever the player's wallpapers or icon sets change (`customize`): the page is told again.
     pub customize_changed: Arc<std::sync::atomic::AtomicU64>,
-    /// The game WestPlay is set up in (the companion's setup sets it): its map is built for the cab.
+    /// The game CabinOS is set up in (the companion's setup sets it): its map is built for the cab.
     pub game: Arc<maps::SetUpGame>,
-    /// WestPlay's map builder (`westplay-maps.exe`), each map built in a process of its own; `None`: built in
-    /// WestPlay's (a development build that hasn't built it).
+    /// CabinOS's map builder (`westplay-maps.exe`), each map built in a process of its own; `None`: built in
+    /// CabinOS's (a development build that hasn't built it).
     pub map_builder: Option<PathBuf>,
 }
 
@@ -315,7 +315,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
         }
     }
     startup::mark("host: cabin page requested");
-    // What WestPlay costs while the game runs, in the log each minute (performance.rs).
+    // What CabinOS costs while the game runs, in the log each minute (performance.rs).
     let mut meter = performance::Meter::new(match &config.content {
         Content::Url(url) => performance::host_of(url).unwrap_or_default(),
         Content::Html(_) => String::new(),
@@ -392,7 +392,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
     let mut cursor_told: Option<bool> = None;
     // Whether what's under the cursor is light, as last read from the frame (`capture::Capture::light_under`).
     let mut cursor_light: Option<bool> = None;
-    // What the player's latest save says (their garages, a map WestPlay doesn't allow), kept to send again
+    // What the player's latest save says (their garages, a map CabinOS doesn't allow), kept to send again
     // when the page reloads.
     let player_watch = PlayerWatch::start(bridge.clone());
     // The speakers of the parts of the truck the player is in, for the trucks whose speakers come with them.
@@ -428,13 +428,13 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
     let mut truckersmp_game: Option<westplay_setup::game::Kind> = None;
     // The page's changes to the game's route, waiting for the plugin's answer.
     let mut route_changes = route_change::RouteChanges::default();
-    // WestPlay's own routes to a place, planned for the page before Go (planner.rs), and the one picked
+    // CabinOS's own routes to a place, planned for the page before Go (planner.rs), and the one picked
     // being handed to the game's GPS (handover.rs).
     let mut planner = planner::Planner::start();
     let mut following: Option<Following> = None;
     // The game's route as its map nodes (0 for points inside junctions), for the hand-over.
     let mut route_uids: Option<Vec<u64>> = None;
-    // The game's waypoints with the route, the ones WestPlay put in to hold a route it handed over (kept once
+    // The game's waypoints with the route, the ones CabinOS put in to hold a route it handed over (kept once
     // it follows: they stay in the game's route), and the player's stops among them as last told to the page.
     let mut route_waypoints: Vec<u64> = Vec::new();
     let mut held_vias: Vec<u64> = Vec::new();
@@ -551,7 +551,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
             startup_pending = log_startup(&bridge, pipeline.as_ref(), screen_frame_before);
         }
 
-        // WestPlay's frames go to the truck's screen while the host runs (the page, open or closed, is
+        // CabinOS's frames go to the truck's screen while the host runs (the page, open or closed, is
         // what shows there).
         host.screen_enabled.store(1, Ordering::Release);
         if let Some(open) = config.open_request.take() {
@@ -617,7 +617,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                 elevated_pid = pid;
                 game_elevated = is_elevated(pid);
                 if game_elevated {
-                    log!("the game runs as administrator: WestPlay can't read its route, guidance or weather");
+                    log!("the game runs as administrator: CabinOS can't read its route, guidance or weather");
                 }
             }
             let under_truckersmp = if !running {
@@ -681,7 +681,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                 last_stats = Instant::now();
                 let plugin = &bridge.bridge().plugin;
                 let frames = pipeline.as_ref().map_or(0, |p| p.capture.frames.load(Ordering::Relaxed));
-                // WestPlay's screen drawn, or the cab's mark in a tablet truck (the tablet itself isn't said there,
+                // CabinOS's screen drawn, or the cab's mark in a tablet truck (the tablet itself isn't said there,
                 // as it's drawn from outside the cab too): as the camera tells the cab drawn.
                 let screen_frame = camera::drawn_frame(
                     plugin.screen_frame.load(Ordering::Relaxed),
@@ -696,7 +696,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                 status.game_connected = plugin.pid.load(Ordering::Relaxed) != 0 && alive && bridge.matches();
                 // A plugin of another version (the game still running from before an update): not used.
                 if !bridge.matches() && plugin.pid.load(Ordering::Relaxed) != 0 {
-                    status.error = Some("the game's WestPlay plugin is another version: restart the game".into());
+                    status.error = Some("the game's CabinOS plugin is another version: restart the game".into());
                 }
                 status.game = status
                     .game_connected
@@ -1685,7 +1685,7 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
         // quick as the game's cut).
         if let (Some(truck), Some(telemetry)) = (&last_truck, &last_telemetry) {
             let plugin = &bridge.bridge().plugin;
-            // The cab drawn: WestPlay's screen, or the cab's mark (the tablet's left out as the player looks away).
+            // The cab drawn: CabinOS's screen, or the cab's mark (the tablet's left out as the player looks away).
             let cab_drawn = camera::drawn_frame(
                 plugin.screen_frame.load(Ordering::Acquire),
                 plugin.cab_frame.load(Ordering::Acquire),
@@ -1856,16 +1856,16 @@ impl Liveness {
     }
 }
 
-/// Being the one WestPlay running in this Windows session: two would both drive the game's bridge (taking
+/// Being the one CabinOS running in this Windows session: two would both drive the game's bridge (taking
 /// turns at its typed-key queue, which has room for one reader, and flipping the game between their frames).
-/// Held for as long as the app runs; a WestPlay that's killed lets go with its process.
+/// Held for as long as the app runs; a CabinOS that's killed lets go with its process.
 pub struct Instance(windows::Win32::Foundation::HANDLE);
 
 // SAFETY: a handle to a named mutex, only ever closed (once, as it goes), from whichever thread.
 unsafe impl Send for Instance {}
 
 impl Instance {
-    /// Claims being the one WestPlay, or `None` if another is running.
+    /// Claims being the one CabinOS, or `None` if another is running.
     pub fn claim() -> Option<Self> {
         Self::claim_named(windows::core::w!(r"Local\CabinOS.Instance"))
     }
@@ -1895,7 +1895,7 @@ impl Drop for Instance {
     }
 }
 
-/// Tells the player WestPlay is already running (a second one was started), in a message box.
+/// Tells the player CabinOS is already running (a second one was started), in a message box.
 pub fn tell_already_running() {
     use windows::Win32::UI::WindowsAndMessaging::{MB_ICONINFORMATION, MB_OK, MessageBoxW};
     // SAFETY: a message box with static strings, no owner window.
@@ -1932,7 +1932,7 @@ fn log_startup(bridge: &BridgeMapping, pipeline: Option<&Pipeline>, screen_frame
         (pipeline.is_some_and(|p| p.capture.frames.load(Ordering::Relaxed) > 0), "host: first frame captured"),
         (
             plugin.screen_frame.load(Ordering::Relaxed) != screen_frame_before,
-            "game: drawing WestPlay on the truck's screen",
+            "game: drawing CabinOS on the truck's screen",
         ),
     ];
     for (reached, stage) in stages {
@@ -1992,9 +1992,9 @@ fn is_shown(game: u32) -> bool {
 }
 
 /// Whether the process `game` (its pid) runs as administrator (elevated), as Task Manager's "Elevated" says: then
-/// Windows keeps WestPlay out of it, and the game's route, guidance and weather can't be read. WestPlay doesn't
+/// Windows keeps CabinOS out of it, and the game's route, guidance and weather can't be read. CabinOS doesn't
 /// work with a game run that way (owner 2026-10-28: nothing that reaches into an elevated game); the player is
-/// told. A token WestPlay isn't let read counts as elevated: it's kept out all the same.
+/// told. A token CabinOS isn't let read counts as elevated: it's kept out all the same.
 fn is_elevated(game: u32) -> bool {
     use windows::Win32::Foundation::{CloseHandle, E_ACCESSDENIED, HANDLE};
     use windows::Win32::Security::{GetTokenInformation, TOKEN_ELEVATION, TOKEN_QUERY, TokenElevation};
@@ -2117,7 +2117,7 @@ fn game_message(running: bool) -> String {
 }
 
 /// `{"type":"routeStops","id":…,"stops":[…]}`: the player's stops along the route `id`, by the index of
-/// their map node in it (ascending): the game's waypoints (`waypoints`, map node uids) but those WestPlay put
+/// their map node in it (ascending): the game's waypoints (`waypoints`, map node uids) but those CabinOS put
 /// in to hold a route it handed over (`hidden`), and but the destination (off a job, the game keeps it as the
 /// last waypoint: seen 2026-10-21, at the route's last node). A waypoint not on the route is left out.
 fn stops_message(id: Option<u32>, route: Option<&[u64]>, waypoints: &[u64], hidden: &[u64]) -> String {
@@ -2318,7 +2318,7 @@ fn game_adapter(bridge: &BridgeMapping) -> Option<LUID> {
     (luid.LowPart != 0 || luid.HighPart != 0).then_some(luid)
 }
 
-/// `{"type":"screen","layout":"scania-2025"}`: which kind of screen the game draws WestPlay on, from the
+/// `{"type":"screen","layout":"scania-2025"}`: which kind of screen the game draws CabinOS on, from the
 /// bridge's `screen_layout` (`null` until a screen has been drawn).
 fn screen_message(layout: u32) -> String {
     let id = (layout as usize).checked_sub(1).and_then(|index| screen_layouts().get(index)).map(|l| l.id);
@@ -2351,7 +2351,7 @@ fn customize_list_message(customizations: &customize::Customizations) -> String 
     message.to_string()
 }
 
-/// How many times the cab's WebView is started before WestPlay's engine gives up, and the pause between.
+/// How many times the cab's WebView is started before CabinOS's engine gives up, and the pause between.
 const CAB_TRIES: u32 = 3;
 const CAB_RETRY_AFTER: Duration = Duration::from_secs(2);
 
@@ -2390,11 +2390,11 @@ enum PageMessage {
     /// The cab's guidance (the next turn it shows, at which node, and how far), every 30 s while there's a route, for
     /// the log (ui/src/cabin/maps/guidanceLog.ts).
     Guidance { line: String },
-    /// Whether WestPlay is open on the truck's screen: posted as the page loads and whenever it changes.
+    /// Whether CabinOS is open on the truck's screen: posted as the page loads and whenever it changes.
     Westplay { open: bool },
     /// The wallpaper chosen in the cab's Settings (an id: `wallpapers.ts`), to keep with the settings.
     Wallpaper { id: String },
-    /// The truck's information bar beside WestPlay, kept or not, chosen in the cab's Settings (Appearance).
+    /// The truck's information bar beside CabinOS, kept or not, chosen in the cab's Settings (Appearance).
     TruckStrip { strip: settings::TruckStrip },
     /// The players' tone, set in the cab's Settings (Equalizer): the player's curve (bass, mid and treble, dB
     /// each), and whether it plays (Custom) or the speakers as tuned (Recommended).
@@ -2481,7 +2481,7 @@ impl From<PageRouteAction> for westplay_shared::RouteAction {
     }
 }
 
-/// `{"type":"westplay","open":true}`: open (or close) WestPlay on the truck's screen.
+/// `{"type":"westplay","open":true}`: open (or close) CabinOS on the truck's screen.
 fn westplay_message(open: bool) -> String {
     serde_json::json!({ "type": "westplay", "open": open }).to_string()
 }
@@ -2492,7 +2492,7 @@ fn parse_page_message(message: &str) -> Option<PageMessage> {
 
 /// What the player's latest save says, for the page: `{"type":"garages","owned":["calais",...],
 /// "headquarters":"calais"}` (the cities whose garages they own, and their headquarters', `null` if none),
-/// `{"type":"mapBlock","hvt":true,"language":"tr_tr"}` (they play on a map by HVT, which WestPlay
+/// `{"type":"mapBlock","hvt":true,"language":"tr_tr"}` (they play on a map by HVT, which CabinOS
 /// doesn't allow, and the game's language to say so in), `{"type":"timeZones","on":true}` (their profile has
 /// the game's time zones on: the clock is the time where the truck is), and `{"type":"units","mph":true}` (its
 /// units are miles and mph; `null`: its options don't say).
@@ -2614,7 +2614,7 @@ mod tests {
     fn a_game_run_normally_isnt_elevated() {
         use windows::Win32::System::Threading::GetCurrentProcessId;
         assert!(!super::is_elevated(0));
-        // This test, run as the player runs WestPlay (not as administrator): not elevated.
+        // This test, run as the player runs CabinOS (not as administrator): not elevated.
         // SAFETY: a plain query.
         let this = unsafe { GetCurrentProcessId() };
         assert!(!super::is_elevated(this));
@@ -2687,7 +2687,7 @@ mod tests {
     #[test]
     fn the_players_stops_are_the_waypoints_but_westplays_and_the_destination() {
         let route = [10, 11, 12, 13, 14, 15];
-        // The game's: a stop at 13, WestPlay's own at 11, another stop at 12, the destination at 15, one off
+        // The game's: a stop at 13, CabinOS's own at 11, another stop at 12, the destination at 15, one off
         // the route.
         let message = super::stops_message(Some(7), Some(&route), &[13, 11, 12, 15, 99], &[11]);
         assert_eq!(message, r#"{"id":7,"stops":[2,3],"type":"routeStops"}"#);
@@ -2774,7 +2774,7 @@ mod tests {
 
     #[test]
     fn only_one_westplay_claims_the_session() {
-        // A name of the test's own (a WestPlay may be running on this PC).
+        // A name of the test's own (a CabinOS may be running on this PC).
         let name = windows::core::w!(r"Local\CabinOS.Instance.Test");
         let first = super::Instance::claim_named(name).expect("the first claims it");
         assert!(super::Instance::claim_named(name).is_none(), "a second must not");
