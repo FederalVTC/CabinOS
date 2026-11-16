@@ -158,9 +158,9 @@ export function openSupportPage(): Promise<void> {
 }
 
 /** WestPlay's pages elsewhere, at the foot of the list. */
-export type Social = 'youtube' | 'discord' | 'patreon'
+export type Social = 'youtube' | 'github'
 
-/** Opens one of WestPlay's pages elsewhere in the player's browser (the app holds their addresses). */
+/** Opens a CabinOS community page in the player's browser (the app holds their addresses). */
 export function openSocial(site: Social): Promise<void> {
   return call('open_social', { site })
 }
