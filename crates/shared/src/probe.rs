@@ -21,7 +21,7 @@ use windows::Win32::System::LibraryLoader::{
 use windows::core::{HSTRING, PCWSTR};
 
 /// The probe's file, beside the plugin's.
-pub const FILE_NAME: &str = "westplay-probe.exe";
+pub const FILE_NAME: &str = "cabinos-probe.exe";
 
 /// The functions' slots in their interfaces' vtables (the interfaces' fixed layout): ID3D11Device's, then
 /// ID3D11DeviceContext's, then IDXGISwapChain's and IDXGISwapChain1's.
