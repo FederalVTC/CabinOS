@@ -83,6 +83,23 @@ button {
   padding: 2px 12px 8px;
 }
 
+
+.cp-brand-mark {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 1px solid rgb(53 217 255 / 0.5);
+  border-radius: 9px;
+  background: linear-gradient(145deg, rgb(53 217 255 / 0.2), rgb(15 29 45 / 0.95));
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.5), inset 0 0 12px rgb(53 217 255 / 0.12);
+  color: #35d9ff;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+}
+
 .cp-brand img {
   width: 32px;
   height: 32px;
