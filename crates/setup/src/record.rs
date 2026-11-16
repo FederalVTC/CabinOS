@@ -146,31 +146,35 @@ mod tests {
 
     #[test]
     fn only_ets2_can_be_kept_in_the_setup_record() {
-        let root = std::env::temp_dir().join(format!("westplay-record-games-{}", std::process::id()));
-        let install = |name: &str, exe: &str| {
+        let root = std::env::temp_dir().join(format!("cabinos-record-games-{}", std::process::id()));
+        let install_ets2 = |name: &str| {
             let dir = root.join(name);
             std::fs::create_dir_all(dir.join("bin").join("win_x64")).unwrap();
             std::fs::write(dir.join("base.scs"), b"").unwrap();
-            std::fs::write(dir.join("bin").join("win_x64").join(exe), b"").unwrap();
+            std::fs::write(dir.join("bin").join("win_x64").join("eurotrucks2.exe"), b"").unwrap();
             Game::recognise(&dir).unwrap()
         };
-        let (ets2, ats, ets2_elsewhere) =
-            (install("ets2", "eurotrucks2.exe"), install("ats", "amtrucks.exe"), install("ets2-b", "eurotrucks2.exe"));
+        let ets2 = install_ets2("ets2");
+        let ets2_elsewhere = install_ets2("ets2-b");
+        let ats = root.join("ats");
+        std::fs::create_dir_all(ats.join("bin").join("win_x64")).unwrap();
+        std::fs::write(ats.join("base.scs"), b"").unwrap();
+        std::fs::write(ats.join("bin").join("win_x64").join("amtrucks.exe"), b"").unwrap();
+        assert!(Game::recognise(&ats).is_none(), "ATS must not be recognised by CabinOS");
+
         let mut record = Record::default();
         record.set_up(&ets2, "2.1.4");
-        record.set_up(&ats, "2.2.0");
         assert_eq!(record.games().iter().map(|game| game.kind).collect::<Vec<_>>(), [Kind::Ets2]);
         assert_eq!(record.games.len(), 1);
         assert_eq!(record.version_of(&ets2), Some("2.1.4"));
         // Set up again: its version now.
         record.set_up(&ets2, "2.2.0");
         assert_eq!(record.version_of(&ets2), Some("2.2.0"));
-        assert_eq!(record.games.len(), 2);
+        assert_eq!(record.games.len(), 1);
         // Another install of ETS2 replaces the previous ETS2 install; ATS never enters the record.
         record.set_up(&ets2_elsewhere, "2.2.0");
         assert_eq!(record.game(Kind::Ets2).map(|game| game.dir), Some(ets2_elsewhere.dir.clone()));
         assert_eq!(record.game(Kind::Ats), None);
         assert_eq!(record.dirs(), [ets2_elsewhere.dir.clone()]);
         let _ = std::fs::remove_dir_all(&root);
-    }
 }

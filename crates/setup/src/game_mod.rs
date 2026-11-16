@@ -72,7 +72,7 @@ const OWN_SCREENS: &[OwnScreen] = &[OwnScreen {
     layout: "scania-2025-advanced",
     source: "ui/dashboard/scania_2025_gps.sii",
     screens: "computers_2025.sui",
-    own_screens: "westplay_computers_2025_advanced.sui",
+    own_screens: "cabinos_computers_2025_advanced.sui",
     interiors: &["def/vehicle/truck/scania.s_2016/interior", "def/vehicle/truck/scania.r_2016/interior"],
     marker: "smartdash_advanced",
 }];
@@ -1458,13 +1458,13 @@ mod tests {
         assert!(script.contains("/material/ui/cabinos/screen_scania_2025_advanced.mat"), "{script}");
         for truck in ["s", "r"] {
             let dir = format!("def/vehicle/truck/scania.{truck}_2016/interior");
-            let screens = text(&format!("{dir}/westplay_computers_2025_advanced.sui")).unwrap();
+            let screens = text(&format!("{dir}/cabinos_computers_2025_advanced.sui")).unwrap();
             assert_eq!(
                 screens,
                 "\tgps_path:\"/ui/dashboard/cabinos_scania_2025_advanced_gps.sii\"\r\n\tgps_drawable_size: (1024, 512)\r\n"
             );
             let advanced = text(&format!("{dir}/cab_{truck}_high_smartdash_advanced_dark.sii")).unwrap();
-            assert!(advanced.contains("@include \"westplay_computers_2025_advanced.sui\"\r\n"), "{advanced}");
+            assert!(advanced.contains("@include \"cabinos_computers_2025_advanced.sui\"\r\n"), "{advanced}");
             assert!(advanced.contains("accessory_interior_data: a_sda_drk\r\n"));
             // The 10.1" isn't touched.
             assert_eq!(text(&format!("{dir}/cab_{truck}_high_smartdash_dark.sii")), None);

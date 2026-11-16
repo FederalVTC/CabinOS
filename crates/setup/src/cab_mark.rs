@@ -25,7 +25,7 @@ use crate::tablet::{self, Spot};
 /// The mark's texture's name, beside the screens' (`game_mod::SCREEN_DIR`).
 pub(crate) const TEXTURE: &str = "cab_mark";
 /// The dashboard scripts the mod has the mark in, a path a line: what [`current`] compares.
-pub(crate) const LIST: &str = "material/ui/westplay/cab_marks.txt";
+pub(crate) const LIST: &str = "material/ui/cabinos/cab_marks.txt";
 
 /// The dashboard scripts to have the mark in, and those left as they are.
 #[derive(Debug, Default, PartialEq)]
@@ -206,10 +206,10 @@ mod tests {
         let text = String::from_utf8(text.clone()).unwrap();
         assert!(
             text.contains(
-                "my_children: 2\n my_children[0]: _nameless._.bckg\n my_children[1]: _nameless.westplay.cab\n"
+                "my_children: 2\n my_children[0]: _nameless._.bckg\n my_children[1]: _nameless.cabinos.cab\n"
             )
         );
-        assert!(text.contains("<img src=/material/ui/westplay/cab_mark.mat xscale=stretch yscale=stretch>"));
+        assert!(text.contains("<img src=/material/ui/cabinos/cab_mark.mat xscale=stretch yscale=stretch>"));
     }
 
     #[test]
@@ -225,14 +225,14 @@ mod tests {
         let found = marks(&game.mounted(), &[], &BTreeSet::from(["scania.r"]), &[]);
         let (bytes, built) = crate::game_mod::build(&game.mounted(), &[], &GameFiles::new(Vec::new()), &found).unwrap();
         assert_eq!(built.cab_marks, 1);
-        let at = game.0.join("westplay.scs");
+        let at = game.0.join("cabinos.scs");
         std::fs::write(&at, bytes).unwrap();
         let archive = Archive::open(&at).unwrap();
         let read = |path: &str| archive.read(path).unwrap();
         assert_eq!(read(LIST), Some(b"ui/dashboard/scania.sii\n".to_vec()));
         assert_eq!(read("ui/dashboard/scania.sii"), Some(found.scripts[0].1.clone()));
         // The mark's texture: fully transparent, at its size.
-        let dds = read("material/ui/westplay/cab_mark.dds").unwrap();
+        let dds = read("material/ui/cabinos/cab_mark.dds").unwrap();
         assert_eq!(dds.len(), 148 + westplay_shared::CAB_MARK_WIDTH as usize * 4);
         assert!(dds[148..].iter().all(|&byte| byte == 0));
         drop(archive);
@@ -291,7 +291,7 @@ mod tests {
         // Installed, active in no profile: the game's copy, marked.
         let found = marks(&game.mounted(), &mods, &trucks, &[vec![truck_files.clone()], vec![]]);
         assert_eq!(found.left, []);
-        assert!(marked(&found).contains("white.mat") && marked(&found).contains("westplay.cab"));
+        assert!(marked(&found).contains("white.mat") && marked(&found).contains("cabinos.cab"));
         // Active in every profile, over the game's: its copy, marked.
         let both = vec![truck_files.clone(), dashboard_files.clone()];
         let found = marks(&game.mounted(), &mods, &trucks, &[both.clone(), vec![dashboard_files.clone()]]);
