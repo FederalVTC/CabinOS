@@ -27,7 +27,7 @@ const STYLES: IconStyle[] = ['auto', 'light', 'dark']
 const PROFILE_APP_NAMES: Record<AppId, string> = {
   maps: 'Maps', music: 'Music', spotify: 'Spotify', youtube: 'YouTube',
   youtubeMusic: 'YouTube Music', player: 'Player', safari: 'Browser',
-  phone: 'Phone', messages: 'Messages', calendar: 'Calendar', weather: 'Weather', settings: 'Settings',
+  phone: 'Phone', messages: 'Messages', calendar: 'Calendar', weather: 'Weather', settings: 'Settings', podcasts: 'Podcasts',
 }
 
 /** What's being added: wallpapers (pictures or a folder of them), or an icon set (a folder or a .zip). */
