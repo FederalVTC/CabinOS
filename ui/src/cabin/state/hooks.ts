@@ -78,9 +78,15 @@ export function useLookChanges(): void {
  */
 export function useAppIcon(role: AppIconRole): string {
   const { appearance } = useLook()
-  const look = useLooks((state) => (state.iconStyle === 'auto' ? appearance : state.iconStyle))
+  const profileIconSet = useLive((state) => state.profile?.appearance.iconSet)
+  const profileIconStyle = useLive((state) => state.profile?.appearance.iconStyle)
+  const look = useLooks((state) => {
+    const style = profileIconStyle ?? state.iconStyle
+    return style === 'auto' ? appearance : style
+  })
   const own = useLooks((state) => {
-    const path = state.custom.iconSets.find((set) => set.name === state.iconSet)?.icons[role]?.[look]
+    const iconSet = profileIconSet === undefined ? state.iconSet : profileIconSet
+    const path = state.custom.iconSets.find((set) => set.name === iconSet)?.icons[role]?.[look]
     return path ? fileUrl(state.base, path) : null
   })
   const live = role === 'calendar' && own === null
