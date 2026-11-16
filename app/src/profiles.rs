@@ -82,12 +82,17 @@ impl TruckProfile {
 pub struct Profiles {
     dir: PathBuf,
     lock: Arc<Mutex<()>>,
+    revision: Arc<AtomicU64>,
 }
 
 impl Profiles {
     pub fn load(dir: &Path) -> std::io::Result<Self> {
         std::fs::create_dir_all(dir)?;
-        let store = Self { dir: dir.to_path_buf(), lock: Arc::new(Mutex::new(())) };
+        let store = Self {
+            dir: dir.to_path_buf(),
+            lock: Arc::new(Mutex::new(())),
+            revision: Arc::new(AtomicU64::new(0)),
+        };
         store.recover_backups()?;
         let default_path = store.path("default");
         if !default_path.exists() {
@@ -99,6 +104,34 @@ impl Profiles {
             ))?;
         }
         Ok(store)
+    }
+
+    /// Shared revision counter: the host re-evaluates the active profile after companion edits.
+    pub fn revision_signal(&self) -> Arc<AtomicU64> {
+        self.revision.clone()
+    }
+
+    fn mark_changed(&self) {
+        self.revision.fetch_add(1, Ordering::Release);
+    }
+
+    /// Finds a single confidently matching custom profile for the active truck.
+    /// A missing fingerprint never falls back to model matching when the other side has one.
+    pub fn for_vehicle(&self, vehicle: &VehicleIdentity) -> Result<Option<TruckProfile>, String> {
+        let _guard = self.lock.lock().unwrap_or_else(|e| e.into_inner());
+        let profiles = self.read_all()?;
+        let mut matches = profiles.into_iter().filter(|profile| {
+            if profile.id == "default" { return false; }
+            let Some(assigned) = profile.vehicle.as_ref() else { return false; };
+            match (vehicle.fingerprint.as_deref(), assigned.fingerprint.as_deref()) {
+                (Some(left), Some(right)) => left == right,
+                (None, None) => vehicle.model_id == assigned.model_id && vehicle.brand_id == assigned.brand_id,
+                _ => false,
+            }
+        });
+        let Some(profile) = matches.next() else { return Ok(None); };
+        if matches.next().is_some() { return Ok(None); }
+        Ok(Some(profile))
     }
 
     fn path(&self, id: &str) -> PathBuf {
@@ -256,6 +289,7 @@ pub fn profiles_create(
     ensure_vehicle_available(&existing, "", vehicle.as_ref())?;
     let profile = TruckProfile::new(new_id(), name, vehicle, now());
     store.write(&profile).map_err(|e| e.to_string())?;
+    store.mark_changed();
     Ok(profile)
 }
 
@@ -304,7 +338,9 @@ pub fn profiles_delete(id: String, store: State<'_, Profiles>) -> Result<(), Str
     if !path.is_file() {
         return Err("El perfil ya no existe.".into());
     }
-    std::fs::remove_file(path).map_err(|e| e.to_string())
+    std::fs::remove_file(path).map_err(|e| e.to_string())?;
+    store.mark_changed();
+    Ok(())
 }
 
 #[tauri::command]
