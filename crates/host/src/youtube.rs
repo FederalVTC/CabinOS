@@ -1314,7 +1314,7 @@ mod tests {
         youtube.command(&Command::SignIn).unwrap();
         pump(8, &mut reports);
         // SAFETY: static strings; the window found (or none) is only posted to below.
-        let window = unsafe { FindWindowW(windows::core::w!("WestPlaySignIn"), None) }.expect("the sign-in window");
+        let window = unsafe { FindWindowW(windows::core::w!("CabinOSSignIn"), None) }.expect("the sign-in window");
         assert_eq!(reports.iter().filter(|r| **r == Report::SignInWindow(true)).count(), 1);
         assert_eq!(youtube.sign_in.borrow().as_ref().map(SignInWindow::progress), Some(Progress::Signing));
         // SAFETY: posting to a window of this test's, which may have closed already (then it's an error).
