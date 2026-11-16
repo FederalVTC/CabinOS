@@ -260,9 +260,19 @@ export function chosenLanguage(chosen: string | null | undefined, game: string |
   return game ?? languageOf(navigator.languages)
 }
 
+/** Replaces the inherited product name in translated UI copy while keeping the translation structure intact. */
+function cabinWords<T>(value: T): T {
+  if (typeof value === 'string') return value.replaceAll('WestPlay', 'CabinOS') as T
+  if (Array.isArray(value)) return value.map((item) => cabinWords(item)) as T
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, cabinWords(item)])) as T
+  }
+  return value
+}
+
 /** The words in the game's language `code` (English for one without). */
 export function wordsFor(code: string): Words {
-  return WORDS[code] ?? WORDS.en_us
+  return cabinWords(WORDS[code] ?? WORDS.en_us)
 }
 
 /** The languages there are words for. */
