@@ -35,9 +35,16 @@ export interface TruckProfile {
 export function isTruckProfile(value: unknown): value is TruckProfile {
   if (typeof value !== 'object' || value === null) return false
   const profile = value as Partial<TruckProfile>
+  const appearance = profile.appearance
+  if (typeof appearance !== 'object' || appearance === null) return false
   return typeof profile.id === 'string' &&
     typeof profile.name === 'string' &&
-    typeof profile.appearance === 'object' && profile.appearance !== null &&
+    typeof appearance.theme === 'string' &&
+    (appearance.mode === undefined || appearance.mode === 'auto' || appearance.mode === 'dark' || appearance.mode === 'light') &&
+    (appearance.wallpaper === null || typeof appearance.wallpaper === 'string') &&
+    (appearance.iconSet === undefined || appearance.iconSet === null || typeof appearance.iconSet === 'string') &&
+    (appearance.iconStyle === undefined || appearance.iconStyle === 'auto' || appearance.iconStyle === 'dark' || appearance.iconStyle === 'light') &&
+    typeof appearance.accentColor === 'string' &&
     Array.isArray(profile.applications) && Array.isArray(profile.shortcuts) &&
     typeof profile.layout === 'object' && profile.layout !== null
 }
