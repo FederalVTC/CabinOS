@@ -128,7 +128,7 @@ fn apple_music_check(accounts: State<Accounts>) {
 }
 
 /// The maker's Kreosus page, where players support WestPlay's development.
-const SUPPORT_PAGE: &str = "https://kreosus.com/enes-less";
+const SUPPORT_PAGE: &str = "https://github.com/FederalVTC/CabinOS";
 
 /// Opens the support page (Support me) in the player's browser. The address is fixed here, so the companion
 /// can't open any other.
@@ -142,8 +142,7 @@ fn open_support_page() {
 #[serde(rename_all = "lowercase")]
 enum Social {
     YouTube,
-    Discord,
-    Patreon,
+    Github,
 }
 
 /// Opens one of WestPlay's pages elsewhere (its YouTube channel, its Discord, its Patreon) in the player's browser.
@@ -151,9 +150,8 @@ enum Social {
 #[tauri::command]
 fn open_social(site: Social) {
     westplay_host::browser::open(match site {
-        Social::YouTube => "https://www.youtube.com/@tyraness",
-        Social::Discord => "https://discord.com/invite/Jt34SmwU6",
-        Social::Patreon => "https://www.patreon.com/c/westmods",
+        Social::YouTube => "https://www.youtube.com/@elabuelostreaming",
+        Social::Github => "https://github.com/FederalVTC/CabinOS",
     });
 }
 
