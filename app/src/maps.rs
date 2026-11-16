@@ -1,7 +1,7 @@
 //! The player's maps (WestPlay's `maps` folder, built by the host: `westplay_host::maps`), served to the
-//! companion's own pages at `westplay-maps://` (`http://westplay-maps.localhost/` in WebView2): the
+//! companion's own pages at `cabinos-maps://` (`http://cabinos-maps.localhost/` in WebView2): the
 //! onboarding shows the map on its live WestPlay as soon as it's made. And the player's own wallpapers and
-//! icon sets (`customize`, `westplay_host::customize`) at `westplay-customize://`, for Customize. Read-only,
+//! icon sets (`customize`, `westplay_host::customize`) at `cabinos-customize://`, for Customize. Read-only,
 //! and nothing outside each folder.
 
 use std::path::{Component, Path, PathBuf};
@@ -9,8 +9,8 @@ use std::path::{Component, Path, PathBuf};
 use tauri::http::{Request, Response, StatusCode, header};
 use tauri::{Manager, Runtime, UriSchemeContext, UriSchemeResponder};
 
-pub const SCHEME: &str = "westplay-maps";
-pub const CUSTOMIZE_SCHEME: &str = "westplay-customize";
+pub const SCHEME: &str = "cabinos-maps";
+pub const CUSTOMIZE_SCHEME: &str = "cabinos-customize";
 
 /// Answers a request for a file of the maps folder (its tiles are fetched by MapLibre's worker, from another
 /// origin: allowed).
