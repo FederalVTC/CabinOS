@@ -5,8 +5,8 @@
 //!
 //! Listed off the host's thread (reading tags takes a while with many songs), again whenever the folder
 //! changes. Covers come from the songs' tags, kept in WestPlay's data folder for the cab to show
-//! (`https://westplay.music-covers/`); the songs themselves are served to the player's page from the folder as
-//! it is (`https://westplay.music/`). Nothing is copied, moved or written in the game's folder.
+//! (`https://cabinos.music-covers/`); the songs themselves are served to the player's page from the folder as
+//! it is (`https://cabinos.music/`). Nothing is copied, moved or written in the game's folder.
 
 use std::cell::RefCell;
 use std::collections::BTreeSet;
@@ -24,11 +24,11 @@ use crate::speakers::{self, Equalizer, Head, Speaker};
 use crate::webview::{self, OffscreenWebView, Stage};
 
 /// Where the songs are served to the player's page.
-pub const MUSIC_HOST: &str = "westplay.music";
+pub const MUSIC_HOST: &str = "cabinos.music";
 /// Where their covers are served to the cabin page.
-pub const COVERS_HOST: &str = "westplay.music-covers";
+pub const COVERS_HOST: &str = "cabinos.music-covers";
 /// The player's own page.
-const PAGE_HOST: &str = "westplay.player";
+const PAGE_HOST: &str = "cabinos.player";
 
 /// The kinds of file Player plays (the browser's own: MP3, Ogg Vorbis and Opus, FLAC, WAV, AAC), by extension.
 const KINDS: [&str; 8] = ["mp3", "ogg", "oga", "opus", "flac", "wav", "m4a", "aac"];
@@ -197,7 +197,7 @@ impl FolderWatch {
     pub fn start(covers: PathBuf) -> Self {
         let (games, game_changes) = mpsc::channel::<Kind>();
         let (lists, listed) = mpsc::channel();
-        let _ = std::thread::Builder::new().name("westplay-music-folder".into()).spawn(move || {
+        let _ = std::thread::Builder::new().name("cabinos-music-folder".into()).spawn(move || {
             let mut kind = Kind::Ets2;
             let mut folder = folder_of(kind);
             let mut seen: Option<(Option<PathBuf>, Files)> = None;
@@ -539,7 +539,7 @@ mod tests {
 
     #[test]
     fn lists_a_folder_without_tags_by_its_files_names() {
-        let dir = std::env::temp_dir().join(format!("westplay-music-folder-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("cabinos-music-folder-{}", std::process::id()));
         let covers = dir.join("covers");
         let music = dir.join("music");
         std::fs::create_dir_all(&music).unwrap();
