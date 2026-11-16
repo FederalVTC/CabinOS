@@ -45,7 +45,7 @@ mod youtube_music;
 
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU8, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use westplay_shared::{BridgeMapping, JobInfo, Keybind, Telemetry, TruckInfo, screen_layouts};
@@ -269,6 +269,8 @@ pub struct Config {
     pub on_settings: Box<dyn FnMut(&settings::Settings) + Send>,
     /// Resolves the one confidently matching per-truck profile, if any, whenever the active truck changes.
     pub on_profile: Box<dyn FnMut(Option<&ActiveTruck>) -> Option<serde_json::Value> + Send>,
+    /// Incremented when profiles change in the companion, so the active truck can be re-evaluated live.
+    pub profiles_changed: Arc<AtomicU64>,
     /// Bumped whenever the player's wallpapers or icon sets change (`customize`): the page is told again.
     pub customize_changed: Arc<std::sync::atomic::AtomicU64>,
     /// The game CabinOS is set up in (the companion's setup sets it): its map is built for the cab.
@@ -372,6 +374,8 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
     let mut last_nearby_post = Instant::now();
     let mut last_telemetry: Option<Telemetry> = None;
     let mut last_truck: Option<TruckInfo> = None;
+    let mut active_profile_truck: Option<ActiveTruck> = None;
+    let mut last_profile_revision = config.profiles_changed.load(Ordering::Acquire);
     let mut last_job: Option<JobInfo> = None;
     let mut last_layout: Option<u32> = None;
     // The game's menu gone while it's still paused (`camera::MenuGone`), and as last told to the page.
@@ -1794,11 +1798,19 @@ pub fn run(mut config: Config, stop: Arc<AtomicBool>) -> Result<(), Error> {
                 player_watch.truck(truck);
                 // The cabin needs the same safe identity as the companion to select per-truck profiles.
                 // active_truck hashes the local plate and never sends the plate itself.
-                let active = active_truck(truck);
-                let message = serde_json::json!({ "type": "truck", "data": active });
+                active_profile_truck = active_truck(truck);
+                let message = serde_json::json!({ "type": "truck", "data": active_profile_truck });
                 let _ = webview.post_json(&message.to_string());
                 // A missing or ambiguous match sends null, so the cabin restores global defaults.
-                let profile = (config.on_profile)(active.as_ref());
+                let profile = (config.on_profile)(active_profile_truck.as_ref());
+                let message = serde_json::json!({ "type": "profile", "data": profile });
+                let _ = webview.post_json(&message.to_string());
+                last_profile_revision = config.profiles_changed.load(Ordering::Acquire);
+            }
+            let profile_revision = config.profiles_changed.load(Ordering::Acquire);
+            if profile_revision != last_profile_revision {
+                last_profile_revision = profile_revision;
+                let profile = (config.on_profile)(active_profile_truck.as_ref());
                 let message = serde_json::json!({ "type": "profile", "data": profile });
                 let _ = webview.post_json(&message.to_string());
             }
