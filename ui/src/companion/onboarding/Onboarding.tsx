@@ -487,7 +487,9 @@ function CheckGame({
     const each = games
       .filter((game) => !checks[game.dir])
       .map((game) => checkGame(game.dir).then((result) => [game.dir, result] as const))
-    Promise.all([Promise.all(each), shown])
+    // A check that never answers mustn't leave the screen turning for ever.
+    const timeout = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('timeout')), 120000))
+    Promise.race([Promise.all([Promise.all(each), shown]), timeout])
       .then(([results]) => active && results.forEach(([dir, result]) => checked(dir, result)))
       .catch((e: unknown) => active && setError(explain(words, e)))
     return () => {

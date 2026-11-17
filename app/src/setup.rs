@@ -268,7 +268,9 @@ pub async fn check_game(dir: PathBuf, store: State<'_, SetupStore>) -> Result<Ga
     let ours = store.0.plugin.clone();
     blocking(move || {
         log!("setup: checking the game in {}", dir.display());
+        let started = std::time::Instant::now();
         let game = Game::recognise(&dir).ok_or("gameGone")?;
+        log!("setup: check: game recognised ({} DLC archives) +{}ms", game.dlcs.len(), started.elapsed().as_millis());
         let (profiles, installed) = match places::game_documents(game.kind) {
             Some(documents) => {
                 let userdata = places::steam().map(|steam| steam.join("userdata"));
@@ -277,6 +279,7 @@ pub async fn check_game(dir: PathBuf, store: State<'_, SetupStore>) -> Result<Ga
             }
             None => (Vec::new(), Vec::new()),
         };
+        log!("setup: check: profiles found ({}) +{}ms", profiles.len(), started.elapsed().as_millis());
         let all_profiles = profiles;
         let profiles = all_profiles
             .iter()
@@ -299,6 +302,7 @@ pub async fn check_game(dir: PathBuf, store: State<'_, SetupStore>) -> Result<Ga
             Ok((_, built)) => (built.patched, None),
             Err(problem) => (Vec::new(), Some(problem.to_string())),
         };
+        log!("setup: check: mod built +{}ms", started.elapsed().as_millis());
         let trucks = trucks::fit(game.kind, &files, &patched, &all_profiles, &installed)
             .into_iter()
             .map(|(truck, fit)| TruckCheck {
@@ -312,7 +316,9 @@ pub async fn check_game(dir: PathBuf, store: State<'_, SetupStore>) -> Result<Ga
                 },
             })
             .collect();
+        log!("setup: check: trucks fitted +{}ms", started.elapsed().as_millis());
         let dlcs = dlc::read(&game);
+        log!("setup: check: DLCs read ({}) +{}ms", dlcs.len(), started.elapsed().as_millis());
         let plugin = match ours.as_deref().map(|ours| plugin::state(&game, ours)) {
             Some(Ok(plugin::State::Current)) => "current",
             Some(Ok(plugin::State::Different)) => "different",
